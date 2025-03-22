@@ -38,6 +38,12 @@ const ApiConstant = {
             description: 'Xác thực số điện thoại',
             pathWithParams: (token) => `/verify/${token}`
         },
+        // POST /change-password - Yêu cầu thay đổi mật khẩu
+        CHANGE_PASSWORD: {
+            path: '/change-password/user_id',
+            method: 'post',
+            description: 'Yêu cầu thay đổi mật khẩu'
+        },
         // POST /forgot-password - Yêu cầu đặt lại mật khẩu
         FORGOT_PASSWORD: {
             path: '/forgot-password',
@@ -49,6 +55,12 @@ const ApiConstant = {
             path: '/reset-password',
             method: 'post',
             description: 'Đặt lại mật khẩu'
+        },
+        // POST /verify-reset-code
+        VERIFY_RESET_CODE: {
+            path: '/verify-reset-code',
+            method: 'post',
+            description: 'Mã đặt lại mật khẩu'
         },
         // GET /me - Lấy thông tin người dùng hiện tại
         ME: {
