@@ -1,84 +1,92 @@
-// validation/message.validation.js
-const { Joi } = require('express-validation');
+import { Joi } from 'express-validation';
+import ValidationConstant from "../constants/validationConstant.js";
 
 const messageValidation = {
-    getMessages: {
-        params: Joi.object({
-            conversationId: Joi.string().required()
-        }),
-        query: Joi.object({
-            page: Joi.number().integer().min(1).default(1),
-            limit: Joi.number().integer().min(1).max(100).default(20),
-            before: Joi.date().iso().optional()
-        })
-    },
     sendMessage: {
         params: Joi.object({
-            conversationId: Joi.string().required()
+            conversation_id: Joi.string().uuid().required()
         }),
         body: Joi.object({
-            content: Joi.string().when('attachments', {
-                is: Joi.exist(),
-                then: Joi.optional(),
-                otherwise: Joi.required()
+            type: Joi.string().valid(
+                ValidationConstant.MEDIA_TYPE.TXT,
+                ValidationConstant.MEDIA_TYPE.IMG,
+                ValidationConstant.MEDIA_TYPE.VID,
+                ValidationConstant.MEDIA_TYPE.FILE,
+                ValidationConstant.MEDIA_TYPE.AUD
+            ).required(),
+            content: Joi.string().when(ValidationConstant.CONVERSATION_ATT.TYPE, {
+                is: ValidationConstant.MEDIA_TYPE.TXT,
+                then: Joi.string().required(),
+                otherwise: Joi.string().optional()
             }),
-            attachments: Joi.array().items(
-                Joi.object({
-                    type: Joi.string().valid('image', 'video', 'audio', 'file').required(),
-                    url: Joi.string().uri().required(),
-                    size: Joi.number().optional(),
-                    name: Joi.string().optional(),
-                    duration: Joi.number().optional() // For video/audio
-                })
-            ).optional(),
-            replyTo: Joi.string().optional() // ID of message being replied to
+            reply_to_id: Joi.string().uuid().optional(),
+            metadata: Joi.object().optional()
         })
     },
+
     updateMessage: {
         params: Joi.object({
-            conversationId: Joi.string().required(),
-            messageId: Joi.string().required()
+            id: Joi.string().uuid().required()
         }),
         body: Joi.object({
             content: Joi.string().required()
         })
     },
+
     deleteMessage: {
         params: Joi.object({
-            conversationId: Joi.string().required(),
-            messageId: Joi.string().required()
+            id: Joi.string().uuid().required()
         })
     },
-    reactToMessage: {
+
+    getMessage: {
         params: Joi.object({
-            conversationId: Joi.string().required(),
-            messageId: Joi.string().required()
+            id: Joi.string().uuid().required()
+        })
+    },
+
+    listMessages: {
+        params: Joi.object({
+            conversation_id: Joi.string().uuid().required()
+        }),
+        query: Joi.object({
+            before: Joi.date().iso().optional(),
+            after: Joi.date().iso().optional(),
+            limit: Joi.number().integer().min(1).max(100).default(50),
+            type: Joi.string().valid(
+                ValidationConstant.MEDIA_TYPE.TXT,
+                ValidationConstant.MEDIA_TYPE.IMG,
+                ValidationConstant.MEDIA_TYPE.VID,
+                ValidationConstant.MEDIA_TYPE.FILE,
+                ValidationConstant.MEDIA_TYPE.AUD
+            ).optional()
+        })
+    },
+
+    addReaction: {
+        params: Joi.object({
+            message_id: Joi.string().uuid().required()
         }),
         body: Joi.object({
-            reaction: Joi.string().required() // emoji code or name
+            reaction_type: Joi.string().required()
         })
     },
+
     removeReaction: {
         params: Joi.object({
-            conversationId: Joi.string().required(),
-            messageId: Joi.string().required(),
-            reactionId: Joi.string().required()
+            message_id: Joi.string().uuid().required(),
+            reaction_id: Joi.string().uuid().required()
         })
     },
-    getReadReceipts: {
+
+    markAsRead: {
         params: Joi.object({
-            conversationId: Joi.string().required(),
-            messageId: Joi.string().required()
-        })
-    },
-    markRead: {
-        params: Joi.object({
-            conversationId: Joi.string().required()
+            conversation_id: Joi.string().uuid().required()
         }),
         body: Joi.object({
-            lastReadMessageId: Joi.string().optional() // If not provided, mark all as read
+            last_read_message_id: Joi.string().uuid().required()
         })
     }
 };
 
-module.exports = messageValidation;
+export default messageValidation;
