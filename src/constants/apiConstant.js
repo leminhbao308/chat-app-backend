@@ -31,12 +31,11 @@ const ApiConstant = {
             method: 'post',
             description: 'Làm mới token xác thực'
         },
-        // GET /verify/:token - Xác thực số điện thoại
+        // POST /verify-phone - Xác thực số điện thoại
         VERIFY: {
-            path: '/verify/:token',
-            method: 'get',
-            description: 'Xác thực số điện thoại',
-            pathWithParams: (token) => `/verify/${token}`
+            path: '/verify-phone',
+            method: 'post',
+            description: 'Xác thực số điện thoại'
         },
         // POST /change-password - Yêu cầu thay đổi mật khẩu
         CHANGE_PASSWORD: {
