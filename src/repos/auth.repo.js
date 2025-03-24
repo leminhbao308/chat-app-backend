@@ -119,7 +119,7 @@ const AuthRepo = {
         try {
             const user = await mongoHelper.findOne(
                 DatabaseConstant.COLLECTIONS.USERS,
-                {phoneNumber}
+                {phone_number: phoneNumber}
             );
 
             // Remove password from response if includePassword = false
