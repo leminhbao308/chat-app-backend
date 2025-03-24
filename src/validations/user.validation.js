@@ -1,17 +1,20 @@
-import { Joi } from 'express-validation';
+import {Joi} from 'express-validation';
 import ValidationConstant from "../constants/validationConstant.js";
 
 const userValidation = {
-    getUser: {
+    getUserById: {
         params: Joi.object({
-            id: Joi.string().uuid().required()
+            id: Joi.string().required().length(24)
+        })
+    },
+
+    getUserByPhone: {
+        query: Joi.object({
+            phone_number: Joi.string().min(5).required()
         })
     },
 
     updateUser: {
-        params: Joi.object({
-            id: Joi.string().uuid().required()
-        }),
         body: Joi.object({
             first_name: Joi.string().optional(),
             last_name: Joi.string().optional(),
@@ -45,11 +48,8 @@ const userValidation = {
     },
 
     toggleUserStatus: {
-        params: Joi.object({
-            id: Joi.string().uuid().required()
-        }),
         body: Joi.object({
-            is_active: Joi.boolean().required()
+            online_status: Joi.string().required().equal('online', 'offline', 'busy')
         })
     }
 };
