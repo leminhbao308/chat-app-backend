@@ -4,36 +4,80 @@
  * Module dependencies.
  */
 import * as http from "node:http";
-import app from "../src/app.js";
-import logger from "morgan"
+import App from "../src/app.js";
+import dotenv from "dotenv";
 
-if (process.env.NODE_ENV === 'development') {
-    console.debug('Application running in development mode');
+// Load environment variables
+dotenv.config();
+
+/**
+ * Configuration and Environment Setup
+ */
+const PORT = normalizePort(process.env.PORT || '3000');
+const NODE_ENV = process.env.NODE_ENV || 'development';
+
+/**
+ * Server Initialization
+ */
+class Server {
+    constructor(app, port) {
+        this.app = app;
+        this.port = port;
+        this.httpServer = null;
+    }
+
+    start() {
+        // Retrieve the actual Express app
+        const expressApp = this.app.getApp();
+
+        // Set port on the Express app
+        expressApp.set('port', this.port);
+
+        this.httpServer = http.createServer(expressApp);
+
+        this.httpServer.listen(this.port);
+        this.httpServer.on('error', this.handleServerError.bind(this));
+        this.httpServer.on('listening', this.handleServerListening.bind(this));
+    }
+
+    handleServerError(error) {
+        if (error.syscall !== 'listen') {
+            throw error;
+        }
+
+        const bind = typeof this.port === 'string'
+            ? `Pipe ${this.port}`
+            : `Port ${this.port}`;
+
+        switch (error.code) {
+            case 'EACCES':
+                console.error(`${bind} requires elevated privileges`);
+                process.exit(1);
+                break;
+            case 'EADDRINUSE':
+                console.error(`${bind} is already in use`);
+                process.exit(1);
+                break;
+            default:
+                throw error;
+        }
+    }
+
+    handleServerListening() {
+        const addr = this.httpServer.address();
+        const bind = typeof addr === 'string'
+            ? `pipe ${addr}`
+            : `port ${addr.port}`;
+
+        console.log(`✅ Server started successfully`);
+        console.log(`🌐 Listening on http://localhost:${this.port}`);
+        console.log(`📍 Environment: ${NODE_ENV}`);
+    }
 }
-
-/**
- * Get port from environment and store in Express.
- */
-const port = normalizePort(process.env.PORT || '3000');
-app.set('port', port);
-
-/**
- * Create HTTP server.
- */
-
-const server = http.createServer(app);
-
-/**
- * Listen on provided port, on all network interfaces.
- */
-server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
 
 /**
  * Normalize a port into a number, string, or false.
  */
-
 function normalizePort(val) {
     const port = parseInt(val, 10);
 
@@ -50,40 +94,7 @@ function normalizePort(val) {
     return false;
 }
 
-/**
- * Event listener for HTTP server "error" event.
- */
-function onError(error) {
-    if (error.syscall !== 'listen') {
-        throw error;
-    }
-
-    const bind = typeof port === 'string'
-        ? 'Pipe ' + port
-        : 'Port ' + port;
-
-    // handle specific listen errors with friendly messages
-    switch (error.code) {
-        case 'EACCES':
-            console.error(bind + ' requires elevated privileges');
-            process.exit(1);
-            break;
-        case 'EADDRINUSE':
-            console.error(bind + ' is already in use');
-            process.exit(1);
-            break;
-        default:
-            throw error;
-    }
-}
-
-/**
- * Event listener for HTTP server "listening" event.
- */
-function onListening() {
-    const addr = server.address();
-    const bind = typeof addr === 'string'
-        ? 'pipe ' + addr
-        : 'port ' + addr.port;
-    console.log(`ExpressJS listening on http://localhost:${port}`);
-}
+// Initialize and start the server
+const expressApp = App;
+const server = new Server(expressApp, PORT);
+server.start()
