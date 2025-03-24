@@ -4,53 +4,50 @@ import StatusConstant from '../constants/statusConstant.js';
 
 /**
  * Authentication middleware
- * Kiểm tra và xác thực JWT token từ request header
+ * Validates JWT token from request header
  */
 const authMiddleware = (req, res, next) => {
-    try {
-        // Lấy token từ header Authorization
-        const authHeader = req.headers.authorization;
+    // Extract Authorization header
+    const authHeader = req.headers.authorization;
 
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return res.status(StatusConstant.UNAUTHORIZED).json(
-                ResponseUtils.unauthorizedResponse('Không tìm thấy token xác thực')
-            );
-        }
-
-        // Lấy token (bỏ "Bearer " ở đầu)
-        const token = authHeader.split(' ')[1];
-
-        if (!token) {
-            return res.status(StatusConstant.UNAUTHORIZED).json(
-                ResponseUtils.unauthorizedResponse('Không tìm thấy token xác thực')
-            );
-        }
-
-        // Verify JWT token and extract user data
-        const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-
-        try {
-            const decoded = jwt.verify(token, JWT_SECRET);
-
-            // Đặt thông tin user vào request để các route có thể sử dụng
-            req.user = decoded;
-
-            // Tiếp tục xử lý request
-            next();
-        } catch (jwtError) {
-            if (jwtError.name === 'TokenExpiredError') {
-                return res.status(StatusConstant.UNAUTHORIZED).json(
-                    ResponseUtils.unauthorizedResponse('Token đã hết hạn')
-                );
-            }
-
-            return res.status(StatusConstant.UNAUTHORIZED).json(
-                ResponseUtils.unauthorizedResponse('Token không hợp lệ')
-            );
-        }
-    } catch (error) {
+    // Validate header format
+    if (!authHeader?.startsWith('Bearer ')) {
         return res.status(StatusConstant.UNAUTHORIZED).json(
-            ResponseUtils.unauthorizedResponse('Lỗi xác thực: ' + error.message)
+            ResponseUtils.unauthorizedResponse('No authentication token found')
+        );
+    }
+
+    // Extract token
+    const token = authHeader.split(' ')[1];
+
+    if (!token) {
+        return res.status(StatusConstant.UNAUTHORIZED).json(
+            ResponseUtils.unauthorizedResponse('No authentication token found')
+        );
+    }
+
+    // Get secret key with fallback
+    const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+
+    try {
+        // Verify token
+        const decoded = jwt.verify(token, JWT_SECRET);
+
+        // Attach user info to request
+        req.user = decoded;
+
+        next();
+    } catch (jwtError) {
+        // Handle specific JWT errors
+        const errorResponses = {
+            'TokenExpiredError': 'Token đã hết hạn',
+            'JsonWebTokenError': 'Token không hợp lệ'
+        };
+
+        const errorMessage = errorResponses[jwtError.name] || 'Lỗi xác thực';
+
+        return res.status(StatusConstant.UNAUTHORIZED).json(
+            ResponseUtils.unauthorizedResponse(errorMessage)
         );
     }
 };

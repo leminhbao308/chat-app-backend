@@ -1,108 +1,69 @@
 import multer from 'multer';
+import 'dotenv/config';
 import path from 'path';
 import fs from 'fs';
 import ResponseUtils from '../utils/response.js';
 import StatusConstant from '../constants/statusConstant.js';
 import FileTypeUtil from '../utils/fileTypeUtil.js';
 
-/**
- * Multer Middleware
- * Xử lý việc tải lên file trong các request
- */
+const UPLOAD_BASE_PATH = process.env.UPLOAD_BASE_PATH || 'uploads';
+const MAX_FILE_SIZE = process.env.MAX_FILE_SIZE || 5 * 1024 * 1024; // 5MB
 
-// Cấu hình lưu trữ file
+const createUploadPath = (type) => {
+  const fullPath = path.join(UPLOAD_BASE_PATH, type);
+  fs.mkdirSync(fullPath, { recursive: true });
+  return fullPath;
+};
+
+const getUploadPathForMimeType = (mimetype) => {
+  if (mimetype.startsWith('image/')) return createUploadPath('images');
+  if (mimetype.startsWith('video/')) return createUploadPath('videos');
+  if (mimetype.startsWith('audio/')) return createUploadPath('audios');
+  return createUploadPath('documents');
+};
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // Thư mục lưu file theo loại
-    let uploadPath = 'uploads/';
-
-    // Tạo thư mục upload nếu chưa tồn tại
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-
-    // Nếu là hình ảnh, lưu vào thư mục images
-    if (file.mimetype.startsWith('image/')) {
-      uploadPath += 'images/';
-    } else if (file.mimetype.startsWith('video/')) {
-      uploadPath += 'videos/';
-    } else if (file.mimetype.startsWith('audio/')) {
-      uploadPath += 'audios/';
-    } else {
-      uploadPath += 'documents/';
-    }
-
-    // Tạo thư mục nếu chưa tồn tại
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-
+    const uploadPath = getUploadPathForMimeType(file.mimetype);
     cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
-    // Tạo tên file duy nhất với timestamp
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1E9)}`;
     const fileExt = path.extname(file.originalname);
-    cb(null, file.fieldname + '-' + uniqueSuffix + fileExt);
+    cb(null, `${file.fieldname}-${uniqueSuffix}${fileExt}`);
   }
 });
 
-// Filter kiểm tra loại file
 const fileFilter = (req, file, cb) => {
-  // Danh sách các loại file được chấp nhận
-  const allowedMimeTypes = FileTypeUtil.allAllowedFileTypes;
-
-  if (allowedMimeTypes.includes(file.mimetype)) {
-    // Chấp nhận file
-    cb(null, true);
-  } else {
-    // Từ chối file với thông báo lỗi
-    cb(new Error('Loại file không được hỗ trợ'), false);
-  }
+  const isAllowedType = FileTypeUtil.allAllowedFileTypes.includes(file.mimetype);
+  cb(isAllowedType ? null : new Error('Unsupported file type'), isAllowedType);
 };
 
-// Khởi tạo multer với cấu hình
 const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // Giới hạn kích thước file 5MB
-  }
+  storage,
+  fileFilter,
+  limits: { fileSize: MAX_FILE_SIZE }
 });
 
-// Middleware xử lý lỗi upload
 const handleMulterError = (err, req, res, next) => {
-  if (err instanceof multer.MulterError) {
-    // Lỗi của multer
-    if (err.code === 'LIMIT_FILE_SIZE') {
-      return res.status(StatusConstant.BAD_REQUEST).json(
-        ResponseUtils.badRequestResponse('File quá lớn. Kích thước tối đa là 5MB')
-      );
-    }
-    return res.status(StatusConstant.BAD_REQUEST).json(
-      ResponseUtils.badRequestResponse(`Lỗi tải lên file: ${err.message}`)
-    );
-  } else if (err) {
-    // Lỗi khác
-    return res.status(StatusConstant.BAD_REQUEST).json(
-      ResponseUtils.badRequestResponse(err.message || 'Lỗi tải lên file')
-    );
-  }
-  next();
+  const errorResponses = {
+    'LIMIT_FILE_SIZE': 'File too large. Maximum size is 5MB',
+    'default': err.message || 'File upload error'
+  };
+
+  const errorMessage = err instanceof multer.MulterError
+      ? (errorResponses[err.code] || errorResponses.default)
+      : errorResponses.default;
+
+  return res.status(StatusConstant.BAD_REQUEST).json(
+      ResponseUtils.badRequestResponse(errorMessage)
+  );
 };
 
-// Helper tạo middleware cho từng trường hợp cụ thể
 const multerMiddleware = {
-  // Upload một file duy nhất
   single: (fieldName) => [upload.single(fieldName), handleMulterError],
-
-  // Upload nhiều file cùng field name
   array: (fieldName, maxCount = 5) => [upload.array(fieldName, maxCount), handleMulterError],
-
-  // Upload nhiều file với các field name khác nhau
   fields: (fields) => [upload.fields(fields), handleMulterError],
-
-  // Upload không file nào
   none: () => [upload.none(), handleMulterError]
 };
 

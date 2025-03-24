@@ -1,17 +1,10 @@
-/**
- * Not Found middleware
- * This middleware handles requests for routes that don't exist
- */
-
 import ResponseUtils from '../utils/response.js';
+import StatusConstant from '../constants/statusConstant.js';
 
-// Express 404 middleware function
 const notFound = (req, res, next) => {
-    // Trả về response với định dạng chuẩn
-    res.status(404).json(
+    res.status(StatusConstant.NOT_FOUND).json(
         ResponseUtils.notFoundResponse(`Không tìm thấy route - ${req.originalUrl}`)
     );
-    next();
 };
 
 export default notFound;

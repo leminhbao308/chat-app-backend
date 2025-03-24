@@ -1,25 +1,18 @@
 import mongoHelper from "../helper/MongoHelper.js";
 import StatusConstant from "../constants/statusConstant.js";
+import ResponseUtils from '../utils/response.js';
 
 const mongoMiddleware = async (req, res, next) => {
-  try {
-    // Check if MongoDB is connected
-    if (!mongoHelper.isConnected()) {
-      console.warn("MongoDB not connected in middleware - this should not happen in normal operation");
-      return res.status(StatusConstant.INTERNAL_SERVER_ERROR).json({
-        success: false,
-        describe: 'Database connection error. Please try again later.'
-      });
-    }
-
-    next();
-  } catch (error) {
-    console.error('MongoDB middleware error:', error);
-    return res.status(StatusConstant.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      describe: 'Database error. Please try again later.'
-    });
+  // Check MongoDB connection with early return
+  if (!mongoHelper.isConnected()) {
+    console.warn("MongoDB connection lost - potential service disruption");
+    return res.status(StatusConstant.INTERNAL_SERVER_ERROR).json(
+        ResponseUtils.serverErrorResponse('Database connection unavailable')
+    );
   }
-}
+
+  // Proceed with request
+  next();
+};
 
 export default mongoMiddleware;

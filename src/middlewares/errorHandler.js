@@ -3,47 +3,51 @@ import StatusConstant from "../constants/statusConstant.js";
 
 /**
  * Error Handler Middleware
- * Xử lý các lỗi và định dạng chúng theo chuẩn response
+ * Processes and formats errors with standard responses
  */
 const errorHandler = (err, req, res, next) => {
-    // Log lỗi ra console (trong môi trường development)
+    // Development environment logging
     if (process.env.NODE_ENV === 'development') {
         console.error(err);
     }
 
-    // Xác định loại lỗi và tạo response tương ứng
-    if (err.name === 'ValidationError') {
-        // Lỗi validation từ thư viện như Joi, express-validator, etc.
-        return res.status(StatusConstant.BAD_REQUEST).json(ResponseUtils.badRequestResponse('Dữ liệu không hợp lệ', err.details));
+    // Error type mappings
+    const errorTypeHandlers = {
+        'ValidationError': () => ({
+            status: StatusConstant.BAD_REQUEST,
+            response: ResponseUtils.badRequestResponse('Dữ liệu không hợp lệ.', err.details)
+        }),
+        'JsonWebTokenError': () => ({
+            status: StatusConstant.UNAUTHORIZED,
+            response: ResponseUtils.unauthorizedResponse('Token không hợp lệ hoặc đã hết hạn')
+        }),
+        'TokenExpiredError': () => ({
+            status: StatusConstant.UNAUTHORIZED,
+            response: ResponseUtils.unauthorizedResponse('Token đã hết hạn')
+        })
+    };
+
+    // Check for specific error type handlers
+    const specificHandler = errorTypeHandlers[err.name];
+    if (specificHandler) {
+        const { status, response } = specificHandler();
+        return res.status(status).json(response);
     }
 
-    if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
-        // Lỗi JWT token
-        return res.status(StatusConstant.UNAUTHORIZED).json(ResponseUtils.unauthorizedResponse('Token không hợp lệ hoặc đã hết hạn'));
-    }
-
-    // Xử lý theo status code
+    // Default error handling based on status code
     const statusCode = err.statusCode || StatusConstant.INTERNAL_SERVER_ERROR;
+    const errorResponses = {
+        [StatusConstant.BAD_REQUEST]: () => ResponseUtils.badRequestResponse(err.message),
+        [StatusConstant.UNAUTHORIZED]: () => ResponseUtils.unauthorizedResponse(err.message),
+        [StatusConstant.NOT_FOUND]: () => ResponseUtils.notFoundResponse(err.message),
+        [StatusConstant.INTERNAL_SERVER_ERROR]: () => ResponseUtils.serverErrorResponse(
+            err.message || 'Có lỗi xảy ra phía server',
+            { stack: err.stack }
+        )
+    };
 
-    switch (statusCode) {
-        case StatusConstant.BAD_REQUEST:
-            return res.status(StatusConstant.BAD_REQUEST)
-                .json(ResponseUtils.badRequestResponse(err.message));
-        case StatusConstant.UNAUTHORIZED:
-            return res.status(StatusConstant.UNAUTHORIZED)
-                .json(ResponseUtils.unauthorizedResponse(err.message));
-        case StatusConstant.NOT_FOUND:
-            return res.status(StatusConstant.NOT_FOUND)
-                .json(ResponseUtils.notFoundResponse(err.message));
-        default:
-            // Mặc định xử lý là lỗi server
-            return res.status(statusCode).json(
-                ResponseUtils.serverErrorResponse(
-                    err.message || 'Đã xảy ra lỗi server',
-                    {stack: err.stack}
-                )
-            );
-    }
+    const responseHandler = errorResponses[statusCode] || errorResponses[StatusConstant.INTERNAL_SERVER_ERROR];
+    return res.status(statusCode).json(responseHandler());
 };
 
 export default errorHandler;
