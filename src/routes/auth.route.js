@@ -60,7 +60,8 @@ AuthRouter.post(
                 is_verified: false,
                 is_active: true,
                 created_at: new Date(),
-                updated_at: new Date()
+                updated_at: new Date(),
+                online_status: "online"
             };
 
             // Insert user into database
