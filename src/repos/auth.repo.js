@@ -1,13 +1,7 @@
 import mongoHelper from "../helper/MongoHelper.js";
 import DatabaseConstant from "../constants/databaseConstant.js";
-import {ObjectId} from "mongodb";
 
 const AuthRepo = {
-    extractObjectId: (idStringOrObjectId) => {
-        return idStringOrObjectId instanceof ObjectId
-            ? idStringOrObjectId
-            : ObjectId.createFromHexString(idStringOrObjectId);
-    },
 
     isUserExisting: async (phone_number) => {
         try {
@@ -39,7 +33,7 @@ const AuthRepo = {
 
     saveVerificationToken: async (userId, phoneNumber, verificationCode) => {
         try {
-            const id = AuthRepo.extractObjectId(userId)
+            const id = mongoHelper.extractObjectId(userId);
 
             await mongoHelper.insertOne(DatabaseConstant.COLLECTIONS.VERIFICATION_TOKENS, {
                 user_id: id,
@@ -58,7 +52,7 @@ const AuthRepo = {
 
     saveRefreshToken: async (refreshTokenPayload) => {
         try {
-            const userId = AuthRepo.extractObjectId(refreshTokenPayload.user_id)
+            const userId = mongoHelper.extractObjectId(refreshTokenPayload.user_id)
 
             await mongoHelper.insertOne(DatabaseConstant.COLLECTIONS.REFRESH_TOKENS, {
                 user_id: userId,
@@ -78,7 +72,7 @@ const AuthRepo = {
 
     saveResetToken: async (resetTokenPayload) => {
         try {
-            const userId = AuthRepo.extractObjectId(resetTokenPayload.user_id);
+            const userId = mongoHelper.extractObjectId(resetTokenPayload.user_id);
 
             await mongoHelper.insertOne(
                 DatabaseConstant.COLLECTIONS.PASSWORD_RESET_TOKENS,
@@ -101,7 +95,7 @@ const AuthRepo = {
     getUserById: async (userId, includePassword = false) => {
         try {
             // Check if userId is already an ObjectId
-            const id = AuthRepo.extractObjectId(userId);
+            const id = mongoHelper.extractObjectId(userId);
 
             const user = await mongoHelper.findOne(
                 DatabaseConstant.COLLECTIONS.USERS,
@@ -143,7 +137,7 @@ const AuthRepo = {
 
     getVerificationTokenByUserIdAndPhoneNumberAndVerificationCode: async (userId, phoneNumber, verificationCode) => {
         try {
-            const id = AuthRepo.extractObjectId(userId);
+            const id = mongoHelper.extractObjectId(userId);
 
             return await mongoHelper.findOne(
                 DatabaseConstant.COLLECTIONS.VERIFICATION_TOKENS,
@@ -176,7 +170,7 @@ const AuthRepo = {
 
     updateVerificationStatusByUserId: async (userId) => {
         try {
-            const id = AuthRepo.extractObjectId(userId);
+            const id = mongoHelper.extractObjectId(userId);
 
             await mongoHelper.updateOne(
                 DatabaseConstant.COLLECTIONS.USERS,
@@ -190,7 +184,7 @@ const AuthRepo = {
 
     updateLastLoginByUserId: async (userId) => {
         try {
-            const id = AuthRepo.extractObjectId(userId);
+            const id = mongoHelper.extractObjectId(userId);
             await mongoHelper.updateOne(
                 DatabaseConstant.COLLECTIONS.USERS,
                 {_id: id},
@@ -203,7 +197,7 @@ const AuthRepo = {
 
     findResetTokenByUserIdAndPhoneNumberAndResetCode: async (userId, phoneNumber, resetCode) => {
         try {
-            const id = AuthRepo.extractObjectId(userId);
+            const id = mongoHelper.extractObjectId(userId);
 
             const resetToken = await mongoHelper.findOne(
                 DatabaseConstant.COLLECTIONS.PASSWORD_RESET_TOKENS,
@@ -238,7 +232,7 @@ const AuthRepo = {
 
     deleteResetTokenById: async (resetTokenId) => {
         try {
-            const id = AuthRepo.extractObjectId(resetTokenId);
+            const id = mongoHelper.extractObjectId(resetTokenId);
 
             await mongoHelper.deleteOne(
                 DatabaseConstant.COLLECTIONS.PASSWORD_RESET_TOKENS,
@@ -251,7 +245,7 @@ const AuthRepo = {
 
     deleteAllResetTokenByUserId: async (userId) => {
         try {
-            const id = AuthRepo.extractObjectId(userId);
+            const id = mongoHelper.extractObjectId(userId);
 
             await mongoHelper.deleteMany(
                 DatabaseConstant.COLLECTIONS.PASSWORD_RESET_TOKENS,
@@ -264,7 +258,7 @@ const AuthRepo = {
 
     deleteAllRefreshTokenByUserId: async (userId) => {
         try {
-            const id = AuthRepo.extractObjectId(userId);
+            const id = mongoHelper.extractObjectId(userId);
 
             await mongoHelper.deleteMany(
                 DatabaseConstant.COLLECTIONS.REFRESH_TOKENS,
@@ -288,7 +282,7 @@ const AuthRepo = {
 
     deleteVerificationTokenById: async (verificationTokenId) => {
         try {
-            const id = AuthRepo.extractObjectId(verificationTokenId);
+            const id = mongoHelper.extractObjectId(verificationTokenId);
 
             await mongoHelper.deleteOne(
                 DatabaseConstant.COLLECTIONS.VERIFICATION_TOKENS,

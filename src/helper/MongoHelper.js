@@ -1,4 +1,4 @@
-import {MongoClient} from 'mongodb';
+import {MongoClient, ObjectId} from 'mongodb';
 import DatabaseConstant from '../constants/databaseConstant.js';
 
 class MongoHelper {
@@ -6,6 +6,12 @@ class MongoHelper {
         this.client = null;
         this.db = null;
         this.connectionPromise = null;
+    }
+
+    extractObjectId(stringIdOrObjectId) {
+        return stringIdOrObjectId instanceof ObjectId
+            ? stringIdOrObjectId
+            : ObjectId.createFromHexString(stringIdOrObjectId);
     }
 
     /**
