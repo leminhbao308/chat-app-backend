@@ -2,27 +2,59 @@ import {MongoClient} from 'mongodb';
 import DatabaseConstant from '../constants/databaseConstant.js';
 
 class MongoHelper {
-    constructor () {
+    constructor() {
         this.client = null;
         this.db = null;
+        this.connectionPromise = null;
     }
 
     /**
      * Kết nối đến MongoDB
-     * @returns {Promise<void>}
+     * @returns {Promise<Db>}
      */
     async connect() {
         try {
-            if (this.client) return this.db;
+            // If we already have a connection promise pending, return it
+            if (this.connectionPromise) return this.connectionPromise;
 
-            this.client = await MongoClient.connect(
-                DatabaseConstant.MONGO_URI
-                    .replace("{u}", DatabaseConstant.MONGO_USERNAME)
-                    .replace("{p}", DatabaseConstant.MONGO_PASSWORD)
-            );
-            this.db = this.client.db(DatabaseConstant.DATABASE_NAME);
-            return this.db;
+            // If we're already connected, return the db
+            if (this.client && this.db) return this.db;
+
+            this.connectionPromise = new Promise(async (resolve, reject) => {
+                try {
+                    const uri = DatabaseConstant.MONGO_URI
+                        .replace("{u}", DatabaseConstant.MONGO_USERNAME)
+                        .replace("{p}", DatabaseConstant.MONGO_PASSWORD);
+
+                    // Configure connection pooling
+                    const options = {
+                        maxPoolSize: DatabaseConstant.MONGO_POOL_SIZE,
+                        maxIdleTimeMS: DatabaseConstant.MONGO_MAX_IDLE_TIME_MS,
+                        connectTimeoutMS: DatabaseConstant.MONGO_CONNECT_TIMEOUT_MS,
+                    };
+
+                    this.client = await MongoClient.connect(uri, options);
+                    this.db = this.client.db(DatabaseConstant.DATABASE_NAME);
+
+                    // Set up connection event listeners
+                    this.client.on('error', (err) => {
+                        console.error('MongoDB connection error:', err);
+                    });
+
+                    this.client.on('timeout', () => {
+                        console.warn('MongoDB connection timeout');
+                    });
+
+                    resolve(this.db);
+                } catch (error) {
+                    this.connectionPromise = null;
+                    reject(error);
+                }
+            });
+
+            return this.connectionPromise;
         } catch (error) {
+            this.connectionPromise = null;
             throw error;
         }
     }
@@ -36,6 +68,7 @@ class MongoHelper {
             await this.client.close();
             this.client = null;
             this.db = null;
+            this.connectionPromise = null;
             console.log('MongoDB connection closed');
         }
     }
@@ -49,24 +82,15 @@ class MongoHelper {
     }
 
     /**
-     * Lấy instance db hiện tại
-     * @returns {Db}
-     */
-    getDb() {
-        if (!this.db) {
-            throw new Error('No MongoDB connection established. Call connect() first.');
-        }
-        return this.db;
-    }
-
-    /**
      * Thêm một document vào collection
      * @param {string} collectionName Tên collection
      * @param {Object} document Document cần thêm
      * @returns {Promise<any>} Kết quả từ MongoDB
      */
     async insertOne(collectionName, document) {
-        await this.connect();
+        if (!this.isConnected()) {
+            throw new Error('No MongoDB connection established');
+        }
         return this.db.collection(collectionName).insertOne(document);
     }
 
@@ -77,7 +101,9 @@ class MongoHelper {
      * @returns {Promise<any>} Kết quả từ MongoDB
      */
     async insertMany(collectionName, documents) {
-        await this.connect();
+        if (!this.isConnected()) {
+            throw new Error('No MongoDB connection established');
+        }
         return this.db.collection(collectionName).insertMany(documents);
     }
 
@@ -89,7 +115,9 @@ class MongoHelper {
      * @returns {Promise<any>} Document tìm được hoặc null
      */
     async findOne(collectionName, query, options = {}) {
-        await this.connect();
+        if (!this.isConnected()) {
+            throw new Error('No MongoDB connection established');
+        }
         return this.db.collection(collectionName).findOne(query, options);
     }
 
@@ -101,7 +129,9 @@ class MongoHelper {
      * @returns {Promise<Array>} Danh sách documents
      */
     async find(collectionName, query, options = {}) {
-        await this.connect();
+        if (!this.isConnected()) {
+            throw new Error('No MongoDB connection established');
+        }
         return this.db.collection(collectionName).find(query, options).toArray();
     }
 
@@ -114,7 +144,9 @@ class MongoHelper {
      * @returns {Promise<any>} Kết quả từ MongoDB
      */
     async updateOne(collectionName, filter, update, options = {}) {
-        await this.connect();
+        if (!this.isConnected()) {
+            throw new Error('No MongoDB connection established');
+        }
         return this.db.collection(collectionName).updateOne(filter, update, options);
     }
 
@@ -127,7 +159,9 @@ class MongoHelper {
      * @returns {Promise<any>} Kết quả từ MongoDB
      */
     async updateMany(collectionName, filter, update, options = {}) {
-        await this.connect();
+        if (!this.isConnected()) {
+            throw new Error('No MongoDB connection established');
+        }
         return this.db.collection(collectionName).updateMany(filter, update, options);
     }
 
@@ -139,7 +173,9 @@ class MongoHelper {
      * @returns {Promise<any>} Kết quả từ MongoDB
      */
     async deleteOne(collectionName, filter, options = {}) {
-        await this.connect();
+        if (!this.isConnected()) {
+            throw new Error('No MongoDB connection established');
+        }
         return this.db.collection(collectionName).deleteOne(filter, options);
     }
 
@@ -151,7 +187,9 @@ class MongoHelper {
      * @returns {Promise<any>} Kết quả từ MongoDB
      */
     async deleteMany(collectionName, filter, options = {}) {
-        await this.connect();
+        if (!this.isConnected()) {
+            throw new Error('No MongoDB connection established');
+        }
         return this.db.collection(collectionName).deleteMany(filter, options);
     }
 
@@ -163,7 +201,9 @@ class MongoHelper {
      * @returns {Promise<number>} Số lượng document
      */
     async count(collectionName, query, options = {}) {
-        await this.connect();
+        if (!this.isConnected()) {
+            throw new Error('No MongoDB connection established');
+        }
         return this.db.collection(collectionName).countDocuments(query, options);
     }
 
@@ -175,7 +215,9 @@ class MongoHelper {
      * @returns {Promise<string>} Tên index được tạo
      */
     async createIndex(collectionName, fields, options = {}) {
-        await this.connect();
+        if (!this.isConnected()) {
+            throw new Error('No MongoDB connection established');
+        }
         return this.db.collection(collectionName).createIndex(fields, options);
     }
 
@@ -185,7 +227,9 @@ class MongoHelper {
      * @returns {Promise<boolean>} True nếu collection được tạo mới
      */
     async createCollectionIfNotExists(collectionName) {
-        await this.connect();
+        if (!this.isConnected()) {
+            throw new Error('No MongoDB connection established');
+        }
         const collections = await this.db.listCollections({ name: collectionName }).toArray();
 
         if (collections.length === 0) {

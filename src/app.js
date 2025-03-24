@@ -7,8 +7,36 @@ import notFound from "./middlewares/notFound.js";
 import errorHandler from "./middlewares/errorHandler.js";
 import ApiConstant from "./constants/apiConstant.js";
 import mongoMiddleware from "./middlewares/mongoMiddleware.js";
+import mongoHelper from "./helper/MongoHelper.js";
 
 const app = express();
+
+// Connect to MongoDB at application startup
+(async () => {
+    try {
+        await mongoHelper.connect();
+        console.log("MongoDB connected during application initialization");
+    } catch (error) {
+        console.error("Failed to establish initial MongoDB connection:", error);
+        // You might want to exit the process here in development mode
+        if (process.env.NODE_ENV === 'development') {
+            console.error("Exiting application due to database connection failure");
+            process.exit(1);
+        }
+    }
+})();
+
+// Set up graceful shutdown
+process.on('SIGINT', async () => {
+    try {
+        await mongoHelper.close();
+        console.log('MongoDB connection closed through app termination');
+        process.exit(0);
+    } catch (error) {
+        console.error('Error during graceful shutdown:', error);
+        process.exit(1);
+    }
+});
 
 app.use(logger('dev'));
 app.use(express.json());
