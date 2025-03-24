@@ -7,10 +7,9 @@ import authMiddleware from "../middlewares/authMiddleware.js";
 import ResponseUtils from "../utils/response.js";
 import StatusConstant from "../constants/statusConstant.js";
 import ApiConstant from "../constants/apiConstant.js";
-import DatabaseConstant from "../constants/databaseConstant.js";
 import validations from "../validations/index.js";
-import mongoHelper from "../helper/MongoHelper.js"
 import {ObjectId} from "mongodb";
+import repos from "../repos/index.js";
 
 const AuthRouter = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
@@ -25,7 +24,7 @@ const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || "7d";
  */
 AuthRouter.post(
     ApiConstant.AUTH.REGISTER.path,
-    validate(validations.auth.register, { keyByField: true }, {}),
+    validate(validations.auth.register, {keyByField: true}, {}),
     async (req, res, next) => {
         try {
             const {
@@ -38,14 +37,11 @@ AuthRouter.post(
             } = req.body;
 
             // Check if user already exists
-            const existingUser = await mongoHelper.findOne(
-                DatabaseConstant.COLLECTIONS.USERS,
-                { phone_number }
-            );
+            const isUserExisting = await repos.auth.isUserExisting(phone_number);
 
-            if (existingUser) {
+            if (isUserExisting) {
                 return res.status(StatusConstant.CONFLICT).json(
-                    ResponseUtils.errorResponse('Số điện thoại đã được đăng ký')
+                    ResponseUtils.errorResponse('Số điện thoại đã được đăng ký', StatusConstant.CONFLICT)
                 );
             }
 
@@ -68,35 +64,26 @@ AuthRouter.post(
             };
 
             // Insert user into database
-            const result = await mongoHelper.insertOne(DatabaseConstant.COLLECTIONS.USERS, user);
+            const result = await repos.auth.saveUser(user);
 
-            // Get the inserted user
-            const insertedUser = await mongoHelper.findOne(
-                DatabaseConstant.COLLECTIONS.USERS,
-                { _id: result.insertedId }
-            );
-
-            // Remove password from response
-            const { password: _, ...userWithoutPassword } = insertedUser;
+            console.log(result)
 
             // Generate verification code for phone number
             const verificationCode = crypto.randomInt(100000, 999999).toString();
 
             // Store verification code
-            await mongoHelper.insertOne(DatabaseConstant.COLLECTIONS.VERIFICATION_TOKENS, {
-                user_id: result.insertedId,
+            await repos.auth.saveVerificationToken(
+                result._id,
                 phone_number,
-                verification_code: verificationCode,
-                expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
-                created_at: new Date()
-            });
+                verificationCode
+            );
 
             // TODO: Send verification code via SMS (implement with SMS service)
 
             return res.status(StatusConstant.CREATED).json(
                 ResponseUtils.createdResponse(
                     ApiConstant.AUTH.REGISTER.description + ' thành công. Mã xác thực đã được gửi tới số điện thoại của bạn.',
-                    userWithoutPassword
+                    result
                 )
             );
         } catch (error) {
@@ -112,16 +99,13 @@ AuthRouter.post(
  */
 AuthRouter.post(
     ApiConstant.AUTH.VERIFY.path,
-    validate(validations.auth.verifyPhoneNumber, { keyByField: true }, {}),
+    validate(validations.auth.verifyPhoneNumber, {keyByField: true}, {}),
     async (req, res, next) => {
         try {
-            const { phone_number, verification_code } = req.body;
+            const {phone_number, verification_code} = req.body;
 
             // Find user by phone
-            const user = await mongoHelper.findOne(
-                DatabaseConstant.COLLECTIONS.USERS,
-                { phone_number }
-            );
+            const user = await repos.auth.getUserByPhone(phone_number);
 
             if (!user) {
                 return res.status(StatusConstant.NOT_FOUND).json(
@@ -130,14 +114,10 @@ AuthRouter.post(
             }
 
             // Find verification token
-            const verificationToken = await mongoHelper.findOne(
-                DatabaseConstant.COLLECTIONS.VERIFICATION_TOKENS,
-                {
-                    user_id: user._id,
-                    phone_number,
-                    verification_code,
-                    expires_at: { $gt: new Date() }
-                }
+            const verificationToken = await repos.auth.getVerificationTokenByUserIdAndPhoneNumberAndVerificationCode(
+                user._id,
+                phone_number,
+                verification_code
             );
 
             if (!verificationToken) {
@@ -147,17 +127,10 @@ AuthRouter.post(
             }
 
             // Mark user as verified
-            await mongoHelper.updateOne(
-                DatabaseConstant.COLLECTIONS.USERS,
-                { _id: user._id },
-                { $set: { is_verified: true, updated_at: new Date() } }
-            );
+            await repos.auth.updateVerificationStatusByUserId(user._id);
 
             // Delete used verification token
-            await mongoHelper.deleteOne(
-                DatabaseConstant.COLLECTIONS.VERIFICATION_TOKENS,
-                { _id: verificationToken._id }
-            );
+            await repos.auth.deleteVerificationTokenById(verificationToken._id);
 
             return res.status(StatusConstant.OK).json(
                 ResponseUtils.successResponse('Xác thực số điện thoại thành công')
@@ -175,16 +148,13 @@ AuthRouter.post(
  */
 AuthRouter.post(
     ApiConstant.AUTH.LOGIN.path,
-    validate(validations.auth.login, { keyByField: true }, {}),
+    validate(validations.auth.login, {keyByField: true}, {}),
     async (req, res, next) => {
         try {
-            const { phone_number, password, device_id, device_type } = req.body;
+            const {phone_number, password, device_id, device_type} = req.body;
 
             // Find user by phone
-            const user = await mongoHelper.findOne(
-                DatabaseConstant.COLLECTIONS.USERS,
-                { phone_number }
-            );
+            const user = await repos.auth.getUserByPhone(phone_number, true);
 
             if (!user) {
                 return res.status(StatusConstant.UNAUTHORIZED).json(
@@ -224,24 +194,20 @@ AuthRouter.post(
             });
 
             // Store refresh token in database
-            await mongoHelper.insertOne(DatabaseConstant.COLLECTIONS.REFRESH_TOKENS, {
-                user_id: user._id,
-                token: refreshToken,
-                device_id,
-                device_type,
-                expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-                created_at: new Date()
-            });
-
-            // Update last login
-            await mongoHelper.updateOne(
-                DatabaseConstant.COLLECTIONS.USERS,
-                { _id: user._id },
-                { $set: { last_login: new Date(), updated_at: new Date() } }
+            await repos.auth.saveRefreshToken(
+                {
+                    user_id: user._id,
+                    token: refreshToken,
+                    device_id,
+                    device_type
+                }
             );
 
+            // Update last login
+            await repos.auth.updateLastLoginByUserId(user._id);
+
             // Remove password from response
-            const { password: _, ...userWithoutPassword } = user;
+            const {password: _, ...userWithoutPassword} = user;
 
             // Set refreshToken in HTTP-only cookie
             res.cookie('refreshToken', refreshToken, {
@@ -281,10 +247,7 @@ AuthRouter.post(
 
             if (refreshToken) {
                 // Delete refresh token from database
-                await mongoHelper.deleteOne(
-                    DatabaseConstant.COLLECTIONS.REFRESH_TOKENS,
-                    { token: refreshToken }
-                );
+                await repos.auth.deleteRefreshToken(refreshToken);
 
                 // Clear cookie
                 res.clearCookie('refreshToken');
@@ -306,7 +269,7 @@ AuthRouter.post(
  */
 AuthRouter.post(
     ApiConstant.AUTH.REFRESH_TOKEN.path,
-    validate(validations.auth.refreshToken, { keyByField: true }, {}),
+    validate(validations.auth.refreshToken, {keyByField: true}, {}),
     async (req, res, next) => {
         try {
             // Get refresh token from cookie or body
@@ -319,10 +282,7 @@ AuthRouter.post(
             }
 
             // Find token in database
-            const storedToken = await mongoHelper.findOne(
-                DatabaseConstant.COLLECTIONS.REFRESH_TOKENS,
-                { token: refreshToken }
-            );
+            const storedToken = await repos.auth.findRefreshToken(refreshToken);
 
             if (!storedToken) {
                 return res.status(StatusConstant.UNAUTHORIZED).json(
@@ -336,23 +296,20 @@ AuthRouter.post(
 
                 // Generate new token
                 const newToken = jwt.sign(
-                    { user_id: decoded.user_id, phone_number: decoded.phone_number },
+                    {user_id: decoded.user_id, phone_number: decoded.phone_number},
                     JWT_SECRET,
-                    { expiresIn: TOKEN_EXPIRY }
+                    {expiresIn: TOKEN_EXPIRY}
                 );
 
                 return res.status(StatusConstant.OK).json(
                     ResponseUtils.successResponse(
                         ApiConstant.AUTH.REFRESH_TOKEN.description + ' thành công',
-                        { token: newToken }
+                        {token: newToken}
                     )
                 );
             } catch (error) {
                 // Token expired or invalid
-                await mongoHelper.deleteOne(
-                    DatabaseConstant.COLLECTIONS.REFRESH_TOKENS,
-                    { token: refreshToken }
-                );
+                await repos.auth.deleteRefreshToken(refreshToken);
 
                 res.clearCookie('refreshToken');
 
@@ -373,16 +330,13 @@ AuthRouter.post(
  */
 AuthRouter.post(
     ApiConstant.AUTH.RESET_PASSWORD.path,
-    validate(validations.auth.resetPasswordRequest, { keyByField: true }, {}),
+    validate(validations.auth.resetPasswordRequest, {keyByField: true}, {}),
     async (req, res, next) => {
         try {
-            const { phone_number } = req.body;
+            const {phone_number} = req.body;
 
             // Find user by phone
-            const user = await mongoHelper.findOne(
-                DatabaseConstant.COLLECTIONS.USERS,
-                { phone_number }
-            );
+            const user = await repos.auth.getUserByPhone(phone_number);
 
             if (!user) {
                 // Don't reveal that user doesn't exist for security
@@ -395,24 +349,24 @@ AuthRouter.post(
             const resetCode = crypto.randomInt(100000, 999999).toString();
 
             // Delete any existing reset tokens for this user
-            await mongoHelper.deleteMany(
-                DatabaseConstant.COLLECTIONS.PASSWORD_RESET_TOKENS,
-                { user_id: user._id }
-            );
+            await repos.auth.deleteAllResetTokenByUserId(user._id);
 
             // Store reset code
-            await mongoHelper.insertOne(
-                DatabaseConstant.COLLECTIONS.PASSWORD_RESET_TOKENS,
+            await repos.auth.saveResetToken(
                 {
                     user_id: user._id,
                     phone_number,
-                    reset_code: resetCode,
-                    expires_at: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
-                    created_at: new Date()
+                    reset_code: resetCode
                 }
             );
 
             // TODO: Send reset code via SMS (implement with SMS service)
+
+            if (process.env.NODE_ENV === "development") {
+                return res.status(StatusConstant.OK).json(
+                    ResponseUtils.successResponse(`Mã đặt lại mật khẩu là: ${resetCode}`)
+                );
+            }
 
             return res.status(StatusConstant.OK).json(
                 ResponseUtils.successResponse('Mã đặt lại mật khẩu đã được gửi tới số điện thoại của bạn')
@@ -430,16 +384,13 @@ AuthRouter.post(
  */
 AuthRouter.post(
     ApiConstant.AUTH.VERIFY_RESET_CODE.path,
-    validate(validations.auth.verifyPasswordResetCode, { keyByField: true }, {}),
+    validate(validations.auth.verifyPasswordResetCode, {keyByField: true}, {}),
     async (req, res, next) => {
         try {
-            const { phone_number, reset_code } = req.body;
+            const {phone_number, reset_code} = req.body;
 
             // Find user by phone
-            const user = await mongoHelper.findOne(
-                DatabaseConstant.COLLECTIONS.USERS,
-                { phone_number }
-            );
+            const user = await repos.auth.getUserByPhone(phone_number);
 
             if (!user) {
                 return res.status(StatusConstant.BAD_REQUEST).json(
@@ -448,14 +399,10 @@ AuthRouter.post(
             }
 
             // Find reset token
-            const resetToken = await mongoHelper.findOne(
-                DatabaseConstant.COLLECTIONS.PASSWORD_RESET_TOKENS,
-                {
-                    user_id: user._id,
-                    phone_number,
-                    reset_code,
-                    expires_at: { $gt: new Date() }
-                }
+            const resetToken = await repos.auth.findResetTokenByUserIdAndPhoneNumberAndResetCode(
+                user._id,
+                phone_number,
+                reset_code
             );
 
             if (!resetToken) {
@@ -480,16 +427,13 @@ AuthRouter.post(
  */
 AuthRouter.post(
     ApiConstant.AUTH.RESET_PASSWORD.path,
-    validate(validations.auth.resetPassword, { keyByField: true }, {}),
+    validate(validations.auth.resetPassword, {keyByField: true}, {}),
     async (req, res, next) => {
         try {
-            const { phone_number, reset_code, new_password } = req.body;
+            const {phone_number, reset_code, new_password} = req.body;
 
             // Find user by phone
-            const user = await mongoHelper.findOne(
-                DatabaseConstant.COLLECTIONS.USERS,
-                { phone_number }
-            );
+            const user = await repos.auth.getUserByPhone(phone_number);
 
             if (!user) {
                 return res.status(StatusConstant.BAD_REQUEST).json(
@@ -498,14 +442,10 @@ AuthRouter.post(
             }
 
             // Find reset token
-            const resetToken = await mongoHelper.findOne(
-                DatabaseConstant.COLLECTIONS.PASSWORD_RESET_TOKENS,
-                {
-                    user_id: user._id,
-                    phone_number,
-                    reset_code,
-                    expires_at: { $gt: new Date() }
-                }
+            const resetToken = repos.auth.findResetTokenByUserIdAndPhoneNumberAndResetCode(
+                user._id,
+                phone_number,
+                reset_code
             );
 
             if (!resetToken) {
@@ -518,24 +458,19 @@ AuthRouter.post(
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(new_password, salt);
 
-            // Update password
-            await mongoHelper.updateOne(
-                DatabaseConstant.COLLECTIONS.USERS,
-                { _id: user._id },
-                { $set: { password: hashedPassword, updated_at: new Date() } }
-            );
-
             // Delete used reset token
-            await mongoHelper.deleteOne(
-                DatabaseConstant.COLLECTIONS.PASSWORD_RESET_TOKENS,
-                { _id: resetToken._id }
-            );
+            await repos.auth.deleteResetTokenById(resetToken._id);
+
+            // Update password
+            const updateResult = await repos.auth.updatePasswordByUserId(user._id, hashedPassword)
+
+            if (!updateResult)
+                return res.status(StatusConstant.INTERNAL_SERVER_ERROR).json(
+                    ResponseUtils.serverErrorResponse(ApiConstant.AUTH.RESET_PASSWORD.description + " thất bại")
+                );
 
             // Invalidate all refresh tokens for this user
-            await mongoHelper.deleteMany(
-                DatabaseConstant.COLLECTIONS.REFRESH_TOKENS,
-                { user_id: user._id }
-            );
+            await repos.auth.deleteAllRefreshTokenByUserId(user._id);
 
             return res.status(StatusConstant.OK).json(
                 ResponseUtils.successResponse(ApiConstant.AUTH.RESET_PASSWORD.description + ' thành công')
@@ -554,17 +489,14 @@ AuthRouter.post(
 AuthRouter.post(
     ApiConstant.AUTH.CHANGE_PASSWORD.path,
     authMiddleware,
-    validate(validations.auth.changePassword, { keyByField: true }, {}),
+    validate(validations.auth.changePassword, {keyByField: true}, {}),
     async (req, res, next) => {
         try {
-            const { current_password, new_password } = req.body;
+            const {current_password, new_password} = req.body;
             const userId = req.params.user_id;
 
             // Find user by ID
-            const user = await mongoHelper.findOne(
-                DatabaseConstant.COLLECTIONS.USERS,
-                { _id: userId }
-            );
+            const user = await repos.auth.getUserById(userId, true);
 
             if (!user) {
                 return res.status(StatusConstant.UNAUTHORIZED).json(
@@ -586,14 +518,15 @@ AuthRouter.post(
             const hashedPassword = await bcrypt.hash(new_password, salt);
 
             // Update password
-            await mongoHelper.updateOne(
-                DatabaseConstant.COLLECTIONS.USERS,
-                { _id: userId },
-                { $set: { password: hashedPassword, updated_at: new Date() } }
-            );
+            const updateResult = repos.auth.updatePasswordByUserId(userId, hashedPassword);
 
-            return res.status(StatusConstant.OK).json(
-                ResponseUtils.successResponse('Thay đổi mật khẩu thành công')
+            if (updateResult)
+                return res.status(StatusConstant.OK).json(
+                    ResponseUtils.successResponse('Thay đổi mật khẩu thành công')
+                );
+
+            return res.status(StatusConstant.INTERNAL_SERVER_ERROR).json(
+                ResponseUtils.serverErrorResponse('Thay đổi mật khẩu thất bại')
             );
         } catch (error) {
             next(error);
@@ -614,10 +547,7 @@ AuthRouter.get(
             const userId = ObjectId.createFromHexString(req.user.user_id);
 
             // Find user by ID
-            const user = await mongoHelper.findOne(
-                DatabaseConstant.COLLECTIONS.USERS,
-                { _id: userId }
-            );
+            const user = await repos.auth.getUserById(userId);
 
             if (!user) {
                 return res.status(StatusConstant.NOT_FOUND).json(
@@ -625,13 +555,10 @@ AuthRouter.get(
                 );
             }
 
-            // Remove password from response
-            const { password, ...userWithoutPassword } = user;
-
             return res.status(StatusConstant.OK).json(
                 ResponseUtils.successResponse(
                     ApiConstant.AUTH.ME.description + ' thành công',
-                    userWithoutPassword
+                    user
                 )
             );
         } catch (error) {
