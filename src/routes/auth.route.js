@@ -10,6 +10,7 @@ import ApiConstant from "../constants/apiConstant.js";
 import validations from "../validations/index.js";
 import {ObjectId} from "mongodb";
 import repos from "../repos/index.js";
+import 'dotenv/config';
 
 const AuthRouter = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
