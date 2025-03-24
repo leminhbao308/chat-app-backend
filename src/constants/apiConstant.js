@@ -83,28 +83,24 @@ const ApiConstant = {
             path: '/:id',
             method: 'get',
             description: 'Lấy thông tin chi tiết của người dùng',
-            pathWithParams: (id) => `/${id}`
         },
-        // PUT /:id - Cập nhật thông tin người dùng
+        // PUT /update-info - Cập nhật thông tin người dùng
         UPDATE: {
-            path: '/:id',
+            path: '/update-info',
             method: 'put',
             description: 'Cập nhật thông tin người dùng',
-            pathWithParams: (id) => `/${id}`
         },
-        // PUT /:id/status - Cập nhật trạng thái người dùng
+        // PUT /status - Cập nhật trạng thái người dùng
         UPDATE_STATUS: {
-            path: '/:id/status',
+            path: '/status',
             method: 'put',
-            description: 'Cập nhật trạng thái người dùng (online/offline/busy)',
-            pathWithParams: (id) => `/${id}/status`
+            description: 'Cập nhật trạng thái người dùng',
         },
-        // PUT /:id/profile-picture - Cập nhật ảnh đại diện
+        // PUT /profile-picture - Cập nhật ảnh đại diện
         PROFILE_PICTURE: {
-            path: '/:id/profile-picture',
+            path: '/profile-picture',
             method: 'put',
-            description: 'Cập nhật ảnh đại diện',
-            pathWithParams: (id) => `/${id}/profile-picture`
+            description: 'Cập nhật ảnh đại diện'
         }
     },
 
