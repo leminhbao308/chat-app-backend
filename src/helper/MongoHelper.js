@@ -69,7 +69,6 @@ class MongoHelper {
             this.client = null;
             this.db = null;
             this.connectionPromise = null;
-            console.log('MongoDB connection closed');
         }
     }
 
@@ -89,7 +88,9 @@ class MongoHelper {
      */
     async insertOne(collectionName, document) {
         if (!this.isConnected()) {
-            throw new Error('No MongoDB connection established');
+            console.warn('No MongoDB connection established.');
+            console.warn('Trying to reconnect...')
+            await this.connect();
         }
         return this.db.collection(collectionName).insertOne(document);
     }
@@ -102,7 +103,9 @@ class MongoHelper {
      */
     async insertMany(collectionName, documents) {
         if (!this.isConnected()) {
-            throw new Error('No MongoDB connection established');
+            console.warn('No MongoDB connection established.');
+            console.warn('Trying to reconnect...')
+            await this.connect();
         }
         return this.db.collection(collectionName).insertMany(documents);
     }
@@ -116,7 +119,9 @@ class MongoHelper {
      */
     async findOne(collectionName, query, options = {}) {
         if (!this.isConnected()) {
-            throw new Error('No MongoDB connection established');
+            console.warn('No MongoDB connection established.');
+            console.warn('Trying to reconnect...')
+            await this.connect();
         }
         return this.db.collection(collectionName).findOne(query, options);
     }
@@ -130,7 +135,9 @@ class MongoHelper {
      */
     async find(collectionName, query, options = {}) {
         if (!this.isConnected()) {
-            throw new Error('No MongoDB connection established');
+            console.warn('No MongoDB connection established.');
+            console.warn('Trying to reconnect...')
+            await this.connect();
         }
         return this.db.collection(collectionName).find(query, options).toArray();
     }
@@ -145,7 +152,9 @@ class MongoHelper {
      */
     async updateOne(collectionName, filter, update, options = {}) {
         if (!this.isConnected()) {
-            throw new Error('No MongoDB connection established');
+            console.warn('No MongoDB connection established.');
+            console.warn('Trying to reconnect...')
+            await this.connect();
         }
         return this.db.collection(collectionName).updateOne(filter, update, options);
     }
@@ -160,7 +169,9 @@ class MongoHelper {
      */
     async updateMany(collectionName, filter, update, options = {}) {
         if (!this.isConnected()) {
-            throw new Error('No MongoDB connection established');
+            console.warn('No MongoDB connection established.');
+            console.warn('Trying to reconnect...')
+            await this.connect();
         }
         return this.db.collection(collectionName).updateMany(filter, update, options);
     }
@@ -174,7 +185,9 @@ class MongoHelper {
      */
     async deleteOne(collectionName, filter, options = {}) {
         if (!this.isConnected()) {
-            throw new Error('No MongoDB connection established');
+            console.warn('No MongoDB connection established.');
+            console.warn('Trying to reconnect...')
+            await this.connect();
         }
         return this.db.collection(collectionName).deleteOne(filter, options);
     }
@@ -188,7 +201,9 @@ class MongoHelper {
      */
     async deleteMany(collectionName, filter, options = {}) {
         if (!this.isConnected()) {
-            throw new Error('No MongoDB connection established');
+            console.warn('No MongoDB connection established.');
+            console.warn('Trying to reconnect...')
+            await this.connect();
         }
         return this.db.collection(collectionName).deleteMany(filter, options);
     }
@@ -202,7 +217,9 @@ class MongoHelper {
      */
     async count(collectionName, query, options = {}) {
         if (!this.isConnected()) {
-            throw new Error('No MongoDB connection established');
+            console.warn('No MongoDB connection established.');
+            console.warn('Trying to reconnect...')
+            await this.connect();
         }
         return this.db.collection(collectionName).countDocuments(query, options);
     }
@@ -216,7 +233,9 @@ class MongoHelper {
      */
     async createIndex(collectionName, fields, options = {}) {
         if (!this.isConnected()) {
-            throw new Error('No MongoDB connection established');
+            console.warn('No MongoDB connection established.');
+            console.warn('Trying to reconnect...')
+            await this.connect();
         }
         return this.db.collection(collectionName).createIndex(fields, options);
     }
@@ -228,7 +247,9 @@ class MongoHelper {
      */
     async createCollectionIfNotExists(collectionName) {
         if (!this.isConnected()) {
-            throw new Error('No MongoDB connection established');
+            console.warn('No MongoDB connection established.');
+            console.warn('Trying to reconnect...')
+            await this.connect();
         }
         const collections = await this.db.listCollections({ name: collectionName }).toArray();
 
