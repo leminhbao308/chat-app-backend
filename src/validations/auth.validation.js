@@ -6,7 +6,8 @@ const authValidation = {
         body: Joi.object({
             first_name: Joi.string().required(),
             last_name: Joi.string().required(),
-            date_of_birth: Joi.string().pattern(ValidationConstant.REGEX.DATE).required()
+            // date_of_birth: Joi.string().pattern(ValidationConstant.REGEX.DATE).required()
+            date_of_birth: Joi.string().pattern(ValidationConstant.REGEX.DATE).optional()
                 .messages({'string.pattern.base': 'Date of birth must be in DD-MM-YYYY format'}),
             password: Joi.string().min(8).required()
                 .pattern(ValidationConstant.REGEX.PASSWORD)

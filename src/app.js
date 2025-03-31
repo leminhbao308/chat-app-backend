@@ -52,9 +52,9 @@ class App {
     }
 
     initializeRoutes() {
-        // Add routes
-        this.app.use(ApiConstant.AUTH.ROOT_PATH, AuthRouter);
-        this.app.use(ApiConstant.USERS.ROOT_PATH, usersRouter);
+        // Prefix all API routes with /api for consistency with frontend configuration
+        this.app.use('/api' + ApiConstant.AUTH.ROOT_PATH, AuthRouter);
+        this.app.use('/api' + ApiConstant.USERS.ROOT_PATH, usersRouter);
     }
 
     handleErrors() {
