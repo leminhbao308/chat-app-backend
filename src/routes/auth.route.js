@@ -58,7 +58,8 @@ AuthRouter.post(
                 phone_number,
                 avatar_url,
                 password: hashedPassword,
-                is_verified: false,
+                // is_verified: false, // bỏ vì sử dụng xác thực OTP qua Firebase
+                is_verified: true, // gán mặc định là đã xác thực vì xử lý OTP bên phía FE
                 is_active: true,
                 created_at: new Date(),
                 updated_at: new Date(),
@@ -71,20 +72,20 @@ AuthRouter.post(
             console.log(result)
 
             // Generate verification code for phone number
-            const verificationCode = crypto.randomInt(100000, 999999).toString();
+            // const verificationCode = crypto.randomInt(100000, 999999).toString();
 
             // Store verification code
-            await repos.auth.saveVerificationToken(
-                result._id,
-                phone_number,
-                verificationCode
-            );
+            // await repos.auth.saveVerificationToken(
+            //     result._id,
+            //     phone_number,
+            //     verificationCode
+            // );
 
             // TODO: Send verification code via SMS (implement with SMS service)
 
             return res.status(StatusConstant.CREATED).json(
                 ResponseUtils.createdResponse(
-                    ApiConstant.AUTH.REGISTER.description + ' thành công. Mã xác thực đã được gửi tới số điện thoại của bạn.',
+            ApiConstant.AUTH.REGISTER.description + ' thành công.',
                     result
                 )
             );
