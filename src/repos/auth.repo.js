@@ -139,6 +139,8 @@ const AuthRepo = {
         try {
             const id = mongoHelper.extractObjectId(userId);
 
+            console.log(userId)
+
             return await mongoHelper.findOne(
                 DatabaseConstant.COLLECTIONS.VERIFICATION_TOKENS,
                 {
