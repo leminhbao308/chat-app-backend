@@ -1,12 +1,12 @@
 import jwt from 'jsonwebtoken';
 import ResponseUtils from '../utils/response.js';
-import StatusConstant from '../constants/statusConstant.js';
+import StatusConstant from '../constants/status.constant.js';
 
 /**
  * Authentication middleware
  * Validates JWT token from request header
  */
-const authMiddleware = (req, res, next) => {
+const AuthMiddleware = (req, res, next) => {
     // Extract Authorization header
     const authHeader = req.headers.authorization;
 
@@ -52,4 +52,4 @@ const authMiddleware = (req, res, next) => {
     }
 };
 
-export default authMiddleware;
+export default AuthMiddleware;

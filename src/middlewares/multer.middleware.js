@@ -3,7 +3,7 @@ import 'dotenv/config';
 import path from 'path';
 import fs from 'fs';
 import ResponseUtils from '../utils/response.js';
-import StatusConstant from '../constants/statusConstant.js';
+import StatusConstant from '../constants/status.constant.js';
 import FileTypeUtil from '../utils/fileTypeUtil.js';
 
 const UPLOAD_BASE_PATH = process.env.UPLOAD_BASE_PATH || 'uploads';
@@ -60,11 +60,11 @@ const handleMulterError = (err, req, res, next) => {
   );
 };
 
-const multerMiddleware = {
+const MulterMiddleware = {
   single: (fieldName) => [upload.single(fieldName), handleMulterError],
   array: (fieldName, maxCount = 5) => [upload.array(fieldName, maxCount), handleMulterError],
   fields: (fields) => [upload.fields(fields), handleMulterError],
   none: () => [upload.none(), handleMulterError]
 };
 
-export default multerMiddleware;
+export default MulterMiddleware;
