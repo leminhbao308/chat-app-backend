@@ -1,4 +1,4 @@
-import { Joi } from 'express-validation';
+import {Joi} from 'express-validation';
 import ValidationConstant from "../constants/validationConstant.js";
 
 const messageValidation = {
@@ -7,6 +7,7 @@ const messageValidation = {
             conversation_id: Joi.string().uuid().required()
         }),
         body: Joi.object({
+            sender: Joi.string().required(),
             type: Joi.string().valid(
                 ValidationConstant.MEDIA_TYPE.TXT,
                 ValidationConstant.MEDIA_TYPE.IMG,
@@ -19,14 +20,14 @@ const messageValidation = {
                 then: Joi.string().required(),
                 otherwise: Joi.string().optional()
             }),
-            reply_to_id: Joi.string().uuid().optional(),
+            reply_to_id: Joi.string().optional(),
             metadata: Joi.object().optional()
         })
     },
 
     updateMessage: {
         params: Joi.object({
-            id: Joi.string().uuid().required()
+            id: Joi.string().required()
         }),
         body: Joi.object({
             content: Joi.string().required()
@@ -35,19 +36,19 @@ const messageValidation = {
 
     deleteMessage: {
         params: Joi.object({
-            id: Joi.string().uuid().required()
+            id: Joi.string().required()
         })
     },
 
     getMessage: {
         params: Joi.object({
-            id: Joi.string().uuid().required()
+            id: Joi.string().required()
         })
     },
 
     listMessages: {
         params: Joi.object({
-            conversation_id: Joi.string().uuid().required()
+            conversation_id: Joi.string().required()
         }),
         query: Joi.object({
             before: Joi.date().iso().optional(),
@@ -65,7 +66,7 @@ const messageValidation = {
 
     addReaction: {
         params: Joi.object({
-            message_id: Joi.string().uuid().required()
+            message_id: Joi.string().required()
         }),
         body: Joi.object({
             reaction_type: Joi.string().required()
@@ -74,17 +75,17 @@ const messageValidation = {
 
     removeReaction: {
         params: Joi.object({
-            message_id: Joi.string().uuid().required(),
-            reaction_id: Joi.string().uuid().required()
+            message_id: Joi.string().required(),
+            reaction_id: Joi.string().required()
         })
     },
 
     markAsRead: {
         params: Joi.object({
-            conversation_id: Joi.string().uuid().required()
+            conversation_id: Joi.string().required()
         }),
         body: Joi.object({
-            last_read_message_id: Joi.string().uuid().required()
+            last_read_message_id: Joi.string().required()
         })
     }
 };
