@@ -1,11 +1,11 @@
 import ResponseUtils from '../utils/response.js';
-import StatusConstant from "../constants/statusConstant.js";
+import StatusConstant from "../constants/status.constant.js";
 
 /**
  * Error Handler Middleware
  * Processes and formats errors with standard responses
  */
-const errorHandler = (err, req, res, next) => {
+const ErrorMiddleware = (err, req, res, next) => {
     // Development environment logging
     if (process.env.NODE_ENV === 'development') {
         console.error(err);
@@ -50,4 +50,4 @@ const errorHandler = (err, req, res, next) => {
     return res.status(statusCode).json(responseHandler());
 };
 
-export default errorHandler;
+export default ErrorMiddleware;

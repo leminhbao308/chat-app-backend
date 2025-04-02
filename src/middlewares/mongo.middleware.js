@@ -1,8 +1,8 @@
 import mongoHelper from "../helper/MongoHelper.js";
-import StatusConstant from "../constants/statusConstant.js";
+import StatusConstant from "../constants/status.constant.js";
 import ResponseUtils from '../utils/response.js';
 
-const mongoMiddleware = async (req, res, next) => {
+const MongoMiddleware = async (req, res, next) => {
   // Check MongoDB connection with early return
   if (!mongoHelper.isConnected()) {
     console.warn("MongoDB connection lost - potential service disruption");
@@ -15,4 +15,4 @@ const mongoMiddleware = async (req, res, next) => {
   next();
 };
 
-export default mongoMiddleware;
+export default MongoMiddleware;
