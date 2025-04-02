@@ -7,10 +7,10 @@ import cors from "cors";
 
 import usersRouter from "./routes/users.route.js";
 import AuthRouter from "./routes/auth.route.js";
-import notFound from "./middlewares/notFound.js";
-import errorHandler from "./middlewares/errorHandler.js";
-import ApiConstant from "./constants/apiConstant.js";
-import mongoMiddleware from "./middlewares/mongoMiddleware.js";
+import NotFoundMiddleware from "./middlewares/notFound.middleware.js";
+import ErrorMiddleware from "./middlewares/error.middleware.js";
+import ApiConstant from "./constants/api.constant.js";
+import MongoMiddleware from "./middlewares/mongo.middleware.js";
 import mongoHelper from "./helper/MongoHelper.js";
 
 class App {
@@ -48,7 +48,7 @@ class App {
         this.app.use(cookieParser());
 
         // MongoDB middleware
-        this.app.use(mongoMiddleware);
+        this.app.use(MongoMiddleware);
     }
 
     initializeRoutes() {
@@ -59,10 +59,10 @@ class App {
 
     handleErrors() {
         // 404 handler
-        this.app.use(notFound);
+        this.app.use(NotFoundMiddleware);
 
         // Error handler
-        this.app.use(errorHandler);
+        this.app.use(ErrorMiddleware);
     }
 
     async connectDatabase() {

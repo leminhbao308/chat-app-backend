@@ -1,6 +1,6 @@
 import {Joi} from 'express-validation';
-import ValidationConstant from "../constants/validationConstant.js";
-import validationConstant from "../constants/validationConstant.js";
+import ValidationConstant from "../constants/validation.constant.js";
+import validationConstant from "../constants/validation.constant.js";
 
 const contactValidation = {
     addContact: {

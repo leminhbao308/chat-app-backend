@@ -1,5 +1,5 @@
 import {MongoClient, ObjectId} from 'mongodb';
-import DatabaseConstant from '../constants/databaseConstant.js';
+import DatabaseConstant from '../constants/database.constant.js';
 
 class MongoHelper {
     constructor() {

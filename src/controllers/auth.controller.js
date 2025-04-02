@@ -1,9 +1,9 @@
 import repos from "../repos/index.js";
-import StatusConstant from "../constants/statusConstant.js";
+import StatusConstant from "../constants/status.constant.js";
 import ResponseUtils from "../utils/response.js";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
-import ApiConstant from "../constants/apiConstant.js";
+import ApiConstant from "../constants/api.constant.js";
 import jwt from "jsonwebtoken";
 import {ObjectId} from "mongodb";
 
