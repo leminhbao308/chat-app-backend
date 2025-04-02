@@ -1,8 +1,8 @@
 import express from "express";
-import authMiddleware from "../middlewares/authMiddleware.js";
+import AuthMiddleware from "../middlewares/auth.middleware.js";
 import ResponseUtils from "../utils/response.js";
-import StatusConstant from "../constants/statusConstant.js";
-import ApiConstant from "../constants/apiConstant.js";
+import StatusConstant from "../constants/status.constant.js";
+import ApiConstant from "../constants/api.constant.js";
 import repos from "../repos/index.js";
 import {validate} from "express-validation";
 import validations from "../validations/index.js";
@@ -14,7 +14,7 @@ const UserRouter = express.Router();
  * @desc    Tìm kiếm người dùng qua số điện thoại hoặc ID
  * @access  Private
  */
-UserRouter.get(ApiConstant.USERS.SEARCH.path, authMiddleware,
+UserRouter.get(ApiConstant.USERS.SEARCH.path, AuthMiddleware,
     validate(validations.user.getUserByPhone, {keyByField: true}, {}),
     async (req, res, next) => {
         try {
@@ -36,7 +36,7 @@ UserRouter.get(ApiConstant.USERS.SEARCH.path, authMiddleware,
  * @desc    Lấy thông tin chi tiết của người dùng
  * @access  Private
  */
-UserRouter.get(ApiConstant.USERS.DETAIL.path, authMiddleware,
+UserRouter.get(ApiConstant.USERS.DETAIL.path, AuthMiddleware,
     validate(validations.user.getUserById, {keyByField: true}, {}),
     async (req, res, next) => {
         try {
@@ -63,7 +63,7 @@ UserRouter.get(ApiConstant.USERS.DETAIL.path, authMiddleware,
  * @desc    Cập nhật thông tin người dùng
  * @access  Private
  */
-UserRouter.put(ApiConstant.USERS.UPDATE.path, authMiddleware,
+UserRouter.put(ApiConstant.USERS.UPDATE.path, AuthMiddleware,
     validate(validations.user.updateUser, {keyByField: true}, {}),
     async (req, res, next) => {
         try {
@@ -95,7 +95,7 @@ UserRouter.put(ApiConstant.USERS.UPDATE.path, authMiddleware,
  * @desc    Cập nhật trạng thái người dùng
  * @access  Private
  */
-UserRouter.put(ApiConstant.USERS.UPDATE_STATUS.path, authMiddleware,
+UserRouter.put(ApiConstant.USERS.UPDATE_STATUS.path, AuthMiddleware,
     validate(validations.user.toggleUserStatus, {keyByField: true}, {}),
     async (req, res, next) => {
     try {
@@ -122,7 +122,7 @@ UserRouter.put(ApiConstant.USERS.UPDATE_STATUS.path, authMiddleware,
  * @desc    Cập nhật ảnh đại diện
  * @access  Private
  */
-UserRouter.put(ApiConstant.USERS.PROFILE_PICTURE.path, authMiddleware,
+UserRouter.put(ApiConstant.USERS.PROFILE_PICTURE.path, AuthMiddleware,
     validate(validations.user.updateUser, {keyByField: true}, {}),
     async (req, res, next) => {
     try {

@@ -1,6 +1,6 @@
 import {Joi} from 'express-validation';
-import validationConstant from "../constants/validationConstant.js";
-import ValidationConstant from "../constants/validationConstant.js";
+import validationConstant from "../constants/validation.constant.js";
+import ValidationConstant from "../constants/validation.constant.js";
 
 const mediaValidation = {
     uploadMedia: {

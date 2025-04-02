@@ -1,7 +1,7 @@
 import express from "express";
 import {validate} from "express-validation";
-import authMiddleware from "../middlewares/authMiddleware.js";
-import ApiConstant from "../constants/apiConstant.js";
+import AuthMiddleware from "../middlewares/auth.middleware.js";
+import ApiConstant from "../constants/api.constant.js";
 import validations from "../validations/index.js";
 import 'dotenv/config';
 import controllers from "../controllers/index.js";
@@ -48,7 +48,7 @@ AuthRouter.post(
  */
 AuthRouter.post(
     ApiConstant.AUTH.LOGOUT.path,
-    authMiddleware,
+    AuthMiddleware,
     controllers.auth.logout
 );
 
@@ -103,7 +103,7 @@ AuthRouter.post(
  */
 AuthRouter.post(
     ApiConstant.AUTH.CHANGE_PASSWORD.path,
-    authMiddleware,
+    AuthMiddleware,
     validate(validations.auth.changePassword, {keyByField: true}, {}),
     controllers.auth.changePassword
 );
@@ -115,7 +115,7 @@ AuthRouter.post(
  */
 AuthRouter.get(
     ApiConstant.AUTH.ME.path,
-    authMiddleware,
+    AuthMiddleware,
     controllers.auth.getUserInfo
 );
 

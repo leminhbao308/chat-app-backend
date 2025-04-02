@@ -1,5 +1,5 @@
 import mongoHelper from "../helper/MongoHelper.js";
-import DatabaseConstant from "../constants/databaseConstant.js";
+import DatabaseConstant from "../constants/database.constant.js";
 
 const AuthRepo = {
 
