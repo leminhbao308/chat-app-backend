@@ -45,7 +45,8 @@ const AuthController = {
                 phone_number,
                 avatar_url,
                 password: hashedPassword,
-                is_verified: false,
+                // is_verified: false,
+                is_verified: true, // vì đã xác thực số điện thoại trong quá trình đăng ký.
                 is_active: true,
                 created_at: new Date(),
                 updated_at: new Date(),
