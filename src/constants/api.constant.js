@@ -43,17 +43,28 @@ const ApiConstant = {
             method: 'post',
             description: 'Yêu cầu thay đổi mật khẩu'
         },
-        // POST /forgot-password - Yêu cầu đặt lại mật khẩu
+        // ✅ Gửi mã OTP yêu cầu đặt lại mật khẩu
+        // FORGOT_PASSWORD: {
+        //     path: '/forgot-password',
+        //     method: 'post',
+        //     description: 'Yêu cầu đặt lại mật khẩu'
+        // },
         FORGOT_PASSWORD: {
-            path: '/forgot-password',
+            path: '/reset-password/request',
             method: 'post',
-            description: 'Yêu cầu đặt lại mật khẩu'
+            description: 'Yêu cầu gửi mã OTP đặt lại mật khẩu'
         },
-        // POST /reset-password - Đặt lại mật khẩu
+
+        // ✅ Xác thực mã OTP và đặt lại mật khẩu
+        // RESET_PASSWORD: {
+        //     path: '/reset-password',
+        //     method: 'post',
+        //     description: 'Đặt lại mật khẩu'
+        // },
         RESET_PASSWORD: {
-            path: '/reset-password',
-            method: 'post',
-            description: 'Đặt lại mật khẩu'
+            path: '/reset-password/confirm',
+            method: 'put',
+            description: 'Xác thực mã OTP và đặt lại mật khẩu'
         },
         // POST /verify-reset-code
         VERIFY_RESET_CODE: {

@@ -63,13 +63,20 @@ AuthRouter.post(
     controllers.auth.refreshToken
 );
 
-/**
- * @route   POST /auth/reset-password
- * @desc    Yêu cầu đặt lại mật khẩu
- * @access  Public
- */
+// /**
+//  * @route   POST /auth/reset-password
+//  * @desc    Yêu cầu đặt lại mật khẩu
+//  * @access  Public
+//  */
+// AuthRouter.post(
+//     ApiConstant.AUTH.RESET_PASSWORD.path,
+//     validate(validations.auth.resetPasswordRequest, {keyByField: true}, {}),
+//     controllers.auth.resetPasswordRequest
+// );
+
+// ✅ Gửi yêu cầu reset password (gửi mã OTP)
 AuthRouter.post(
-    ApiConstant.AUTH.RESET_PASSWORD.path,
+    ApiConstant.AUTH.FORGOT_PASSWORD.path,
     validate(validations.auth.resetPasswordRequest, {keyByField: true}, {}),
     controllers.auth.resetPasswordRequest
 );
@@ -85,12 +92,19 @@ AuthRouter.post(
     controllers.auth.verifyPasswordResetCode
 );
 
-/**
- * @route   POST /auth/reset-password
- * @desc    Đặt lại mật khẩu với reset code
- * @access  Public
- */
-AuthRouter.post(
+// /**
+//  * @route   POST /auth/reset-password
+//  * @desc    Đặt lại mật khẩu với reset code
+//  * @access  Public
+//  */
+// AuthRouter.post(
+//     ApiConstant.AUTH.RESET_PASSWORD.path,
+//     validate(validations.auth.resetPassword, {keyByField: true}, {}),
+//     controllers.auth.resetPassword
+// );
+
+// ✅ Xác thực mã OTP và đặt lại mật khẩu
+AuthRouter.put(
     ApiConstant.AUTH.RESET_PASSWORD.path,
     validate(validations.auth.resetPassword, {keyByField: true}, {}),
     controllers.auth.resetPassword
