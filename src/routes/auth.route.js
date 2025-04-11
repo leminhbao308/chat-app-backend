@@ -104,14 +104,14 @@ AuthRouter.post(
 // );
 
 // ✅ Xác thực mã OTP và đặt lại mật khẩu
-AuthRouter.put(
+AuthRouter.post(
     ApiConstant.AUTH.RESET_PASSWORD.path,
     validate(validations.auth.resetPassword, {keyByField: true}, {}),
     controllers.auth.resetPassword
 );
 
 /**
- * @route   POST /auth/change-password/:user_id
+ * @route   POST /auth/change-password
  * @desc    Thay đổi mật khẩu
  * @access  Private
  */

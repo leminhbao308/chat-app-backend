@@ -62,7 +62,7 @@ const ApiConstant = {
         //     description: 'Đặt lại mật khẩu'
         // },
         RESET_PASSWORD: {
-            path: '/reset-password/confirm',
+            path: '/reset-password',
             method: 'put',
             description: 'Xác thực mã OTP và đặt lại mật khẩu'
         },

@@ -361,7 +361,7 @@ const AuthController = {
 
     resetPassword: async (req, res, next) => {
         try {
-            const {phone_number, reset_code, new_password} = req.body;
+            const {phone_number, new_password} = req.body;
 
             // Find user by phone
             const user = await repos.auth.getUserByPhone(phone_number);
@@ -390,14 +390,14 @@ const AuthController = {
             // 👉 Giờ chỉ cần đảm bảo có giá trị `reset_code` (để log/debug) là đủ
             // ✅ Đã xác thực mã OTP ở frontend bằng Firebase → không cần xác minh lại ở backend
             // ❗ Tuy nhiên, ta vẫn kiểm tra định dạng reset_code để tránh request sai định dạng gây lỗi 400
-            if (!reset_code || !/^\d{6}$/.test(reset_code)) {
-                return res.status(StatusConstant.BAD_REQUEST).json(
-                    ResponseUtils.errorResponse('Mã OTP không hợp lệ. Vui lòng kiểm tra lại.')
-                );
-            }
+            // if (!reset_code || !/^\d{6}$/.test(reset_code)) {
+            //     return res.status(StatusConstant.BAD_REQUEST).json(
+            //         ResponseUtils.errorResponse('Mã OTP không hợp lệ. Vui lòng kiểm tra lại.')
+            //     );
+            // }
 
-            // 👉 In log để hỗ trợ debug nếu cần
-            console.log("[RESET_PASSWORD] Số điện thoại:", phone_number, "- OTP:", reset_code);
+            // // 👉 In log để hỗ trợ debug nếu cần
+            // console.log("[RESET_PASSWORD] Số điện thoại:", phone_number, "- OTP:", reset_code);
 
             // Hash new password
             const salt = await bcrypt.genSalt(10);
@@ -432,7 +432,7 @@ const AuthController = {
     changePassword: async (req, res, next) => {
         try {
             const {current_password, new_password} = req.body;
-            const userId = req.params.user_id;
+            const userId = ObjectId.createFromHexString(req.user.user_id);
 
             // Find user by ID
             const user = await repos.auth.getUserById(userId, true);

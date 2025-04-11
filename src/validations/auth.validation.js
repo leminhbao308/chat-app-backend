@@ -60,9 +60,6 @@ const authValidation = {
     resetPassword: {
         body: Joi.object({
             phone_number: Joi.string().required(),
-            reset_code: Joi.string().length(6)
-                .pattern(ValidationConstant.REGEX.SIX_DIGIT_CODE).required()
-                .messages({'string.pattern.base': 'Reset code must be 6 digits'}),
             new_password: Joi.string().min(8).required()
                 .pattern(ValidationConstant.REGEX.PASSWORD)
                 .messages({
