@@ -143,11 +143,11 @@ UserRouter.get(ApiConstant.USERS.PROFILE_PICTURE_OLD.path,
     });
 
 /**
- * @route   PUT /users/profile-picture
+ * @route   POST /users/profile-picture
  * @desc    Cập nhật ảnh đại diện
  * @access  Private
  */
-UserRouter.put(ApiConstant.USERS.PROFILE_PICTURE.path, AuthMiddleware,
+UserRouter.post(ApiConstant.USERS.PROFILE_PICTURE.path, AuthMiddleware,
     MulterMiddleware.single('file'),
     async (req, res, next) => {
         try {

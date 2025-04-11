@@ -107,10 +107,10 @@ const ApiConstant = {
             method: 'put',
             description: 'Cập nhật trạng thái người dùng',
         },
-        // PUT /profile-picture - Cập nhật ảnh đại diện
+        // POST /profile-picture - Cập nhật ảnh đại diện
         PROFILE_PICTURE: {
             path: '/profile-picture',
-            method: 'put',
+            method: 'post',
             description: 'Cập nhật ảnh đại diện'
         },
         // PUT /profile-picture/old - Lấy danh sách ảnh đại diện cũ
