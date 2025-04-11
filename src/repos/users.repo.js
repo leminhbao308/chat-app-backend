@@ -46,6 +46,8 @@ const UsersRepo = {
                 updateFields.date_of_birth = userInfoPayload.date_of_birth;
             if (userInfoPayload.avatar_url)
                 updateFields.avatar_url = userInfoPayload.avatar_url;
+            if (userInfoPayload.thumbnail_url)
+                updateFields.thumbnail_url = userInfoPayload.thumbnail_url;
             if (userInfoPayload.phone_number)
                 updateFields.phone_number = userInfoPayload.phone_number;
             if (userInfoPayload.is_active)

@@ -13,6 +13,7 @@ const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "your-refresh-secre
 const TOKEN_EXPIRY = process.env.TOKEN_EXPIRY || "2h";
 const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || "7d";
 const DEFAULT_USER_AVATAR_URL = process.env.DEFAULT_USER_AVATAR_URL;
+const DEFAULT_THUMBNAIL_URL = process.env.DEFAULT_THUMBNAIL_URL;
 
 const AuthController = {
     register: async (req, res, next) => {
@@ -24,6 +25,7 @@ const AuthController = {
                 date_of_birth,
                 password,
                 avatar_url,
+                thumbnail_url,
                 phone_number
             } = req.body;
 
@@ -48,6 +50,7 @@ const AuthController = {
                 date_of_birth,
                 phone_number,
                 avatar_url: avatar_url ? avatar_url : DEFAULT_USER_AVATAR_URL,
+                thumbnail_url: thumbnail_url ? thumbnail_url : DEFAULT_THUMBNAIL_URL,
                 password: hashedPassword,
                 // is_verified: false,
                 is_verified: true, // vì đã xác thực số điện thoại trong quá trình đăng ký.
@@ -209,8 +212,8 @@ const AuthController = {
 
     logout: async (req, res, next) => {
         try {
-            // Get refresh token from cookie or body
-            const refreshToken = req.cookies.refreshToken || req.body.refresh_token;
+            // Get refresh token from cookie or body]
+            const {refreshToken} = req.cookies.refreshToken || req.body;
 
             if (refreshToken) {
                 // Delete refresh token from database

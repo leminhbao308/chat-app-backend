@@ -31,7 +31,8 @@ const S3Constant = {
         PUBLIC: 'public/'
     },
 
-    DEFAULT_USER_AVATAR_URL: process.env.DEFAULT_USER_AVATAR_URL
+    DEFAULT_USER_AVATAR_URL: process.env.DEFAULT_USER_AVATAR_URL,
+    DEFAULT_THUMBNAIL_URL: process.env.DEFAULT_THUMBNAIL_URL
 };
 
 export default S3Constant;

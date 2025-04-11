@@ -19,6 +19,7 @@ const authValidation = {
                     'string.pattern.base': 'Password must contain at least one uppercase letter, one lowercase letter, one number and one special character'
                 }),
             avatar_url: Joi.string().uri().optional().default(S3Constant.DEFAULT_USER_AVATAR_URL),
+            thumbnail_url: Joi.string().uri().optional().default(S3Constant.DEFAULT_THUMBNAIL_URL),
             phone_number: Joi.string().pattern(ValidationConstant.REGEX.PHONE).required()
                 .messages({'string.pattern.base': 'Phone number must be a valid international format'})
         })
@@ -83,9 +84,11 @@ const authValidation = {
         body: Joi.object({
             first_name: Joi.string().optional(),
             last_name: Joi.string().optional(),
+            gender: Joi.string().optional().valid(ValidationConstant.GENDER.M, ValidationConstant.GENDER.F),
             date_of_birth: Joi.string().pattern(ValidationConstant.REGEX.DATE).optional()
                 .messages({'string.pattern.base': 'Date of birth must be in DD-MM-YYYY format'}),
             avatar_url: Joi.string().uri().optional(),
+            thumbnail_url: Joi.string().uri().optional(),
             phone_number: Joi.string().pattern(ValidationConstant.REGEX.PHONE).optional()
                 .messages({'string.pattern.base': 'Phone number must be a valid international format'})
         })
