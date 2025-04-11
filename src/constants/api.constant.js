@@ -112,7 +112,14 @@ const ApiConstant = {
             path: '/profile-picture',
             method: 'put',
             description: 'Cập nhật ảnh đại diện'
+        },
+        // PUT /profile-picture/old - Lấy danh sách ảnh đại diện cũ
+        PROFILE_PICTURE_OLD: {
+            path: '/profile-picture/old',
+            method: 'get',
+            description: 'Lấy danh sách ảnh đại diện cũ'
         }
+
     },
 
     // Contacts/Friends Routes
@@ -579,7 +586,7 @@ const ApiConstant = {
             method: 'post',
             description: 'Khôi phục dữ liệu từ bản sao lưu'
         }
-    }
+    },
 };
 
 export default ApiConstant;

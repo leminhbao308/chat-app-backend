@@ -12,12 +12,14 @@ import ErrorMiddleware from "./middlewares/error.middleware.js";
 import ApiConstant from "./constants/api.constant.js";
 import MongoMiddleware from "./middlewares/mongo.middleware.js";
 import mongoHelper from "./helper/MongoHelper.js";
+import S3Middleware from "./middlewares/s3.middleware.js";
+import s3Helper from "./helper/s3.helper.js";
 
 class App {
     constructor() {
         this.app = express();
         this.initializeMiddlewares();
-        this.connectDatabase();
+        this.connectServices()
         this.initializeRoutes();
         this.handleErrors();
         this.setupGracefulShutdown();
@@ -47,8 +49,9 @@ class App {
         // Cookie parsing
         this.app.use(cookieParser());
 
-        // MongoDB middleware
+        // Database and storage middleware
         this.app.use(MongoMiddleware);
+        this.app.use(S3Middleware);
     }
 
     initializeRoutes() {
@@ -65,6 +68,11 @@ class App {
         this.app.use(ErrorMiddleware);
     }
 
+    async connectServices() {
+        await this.connectDatabase();
+        await this.connectStorage();
+    }
+
     async connectDatabase() {
         try {
             await mongoHelper.connect();
@@ -77,6 +85,18 @@ class App {
                 console.error("Exiting application due to database connection failure");
                 process.exit(1);
             }
+        }
+    }
+
+    async connectStorage() {
+        try {
+            await s3Helper.connect();
+            console.log("AWS S3 connected successfully");
+        } catch (error) {
+            console.error("AWS S3 connection failed:", error);
+
+            console.warn("Exiting application due to storage connection failure");
+            process.exit(1);
         }
     }
 
