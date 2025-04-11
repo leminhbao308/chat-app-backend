@@ -6,6 +6,9 @@ import ApiConstant from "../constants/api.constant.js";
 import repos from "../repos/index.js";
 import {validate} from "express-validation";
 import validations from "../validations/index.js";
+import MulterMiddleware from "../middlewares/multer.middleware.js";
+import {ObjectId} from "mongodb";
+import authRepo from "../repos/auth.repo.js";
 
 const UserRouter = express.Router();
 
@@ -98,24 +101,46 @@ UserRouter.put(ApiConstant.USERS.UPDATE.path, AuthMiddleware,
 UserRouter.put(ApiConstant.USERS.UPDATE_STATUS.path, AuthMiddleware,
     validate(validations.user.toggleUserStatus, {keyByField: true}, {}),
     async (req, res, next) => {
-    try {
-        const id = req.user.user_id;
-        const {online_status} = req.body;
+        try {
+            const id = req.user.user_id;
+            const {online_status} = req.body;
 
-        const updatedUser = await repos.users.updateUserInfo(id, {online_status});
+            const updatedUser = await repos.users.updateUserInfo(id, {online_status});
 
-        if (!updatedUser)
-            return res.status(StatusConstant.BAD_REQUEST).json(
-                ResponseUtils.badRequestResponse(ApiConstant.USERS.UPDATE_STATUS.description + ' thất bại')
-            )
+            if (!updatedUser)
+                return res.status(StatusConstant.BAD_REQUEST).json(
+                    ResponseUtils.badRequestResponse(ApiConstant.USERS.UPDATE_STATUS.description + ' thất bại')
+                )
 
-        return res.status(StatusConstant.OK).json(
-            ResponseUtils.successResponse(ApiConstant.USERS.UPDATE_STATUS.description + ' thành công', updatedUser)
-        );
-    } catch (error) {
-        next(error);
-    }
-});
+            return res.status(StatusConstant.OK).json(
+                ResponseUtils.successResponse(ApiConstant.USERS.UPDATE_STATUS.description + ' thành công', updatedUser)
+            );
+        } catch (error) {
+            next(error);
+        }
+    });
+
+/**
+ * @route   GET /users/profile-picture/old
+ * @desc    Lấy danh sách ảnh đại diện cũ
+ * @access  Private
+ */
+UserRouter.get(ApiConstant.USERS.PROFILE_PICTURE_OLD.path,
+    AuthMiddleware,
+    async (req, res, next) => {
+        try {
+            const userId = ObjectId.createFromHexString(req.user.user_id);
+
+            const avatars = await repos.user_avatars.getAvatarListByUserId(userId)
+
+            return res.status(StatusConstant.OK).json(
+                ResponseUtils.successResponse(ApiConstant.USERS.PROFILE_PICTURE_OLD.description + ' thành công', {
+                    avatars
+                }));
+        } catch (error) {
+            next(error)
+        }
+    });
 
 /**
  * @route   PUT /users/profile-picture
@@ -123,33 +148,47 @@ UserRouter.put(ApiConstant.USERS.UPDATE_STATUS.path, AuthMiddleware,
  * @access  Private
  */
 UserRouter.put(ApiConstant.USERS.PROFILE_PICTURE.path, AuthMiddleware,
-    validate(validations.user.updateUser, {keyByField: true}, {}),
+    MulterMiddleware.single('file'),
     async (req, res, next) => {
-    try {
-        const id = req.user.user_id;
-        const {avatar_url} = req.body;
+        try {
+            // Check if file was uploaded
+            if (!req.file) {
+                return res.status(StatusConstant.BAD_REQUEST).json(
+                    ResponseUtils.badRequestResponse('No file uploaded')
+                );
+            }
 
-        // TODO: Handle file upload (multer middleware should be added)
-        // TODO: Process and store the uploaded image
-        // TODO: Update user's profile picture URL in database
+            const id = req.user.user_id;
 
-        const updatedUser = await repos.users.updateUserInfo(id, {
-            avatar_url
-        });
+            const user = await authRepo.getUserById(id)
+            const old_avatar_url = user.avatar_url;
 
-        if (!updatedUser)
-            return res.status(StatusConstant.BAD_REQUEST).json(
-                ResponseUtils.badRequestResponse(ApiConstant.USERS.PROFILE_PICTURE.description + ' thất bại')
-            )
+            const avatar_url = await repos.s3.uploadFile(req.file);
 
-        return res.status(StatusConstant.OK).json(
-            ResponseUtils.successResponse(ApiConstant.USERS.PROFILE_PICTURE.description + ' thành công', {
-                updatedUser
-            })
-        );
-    } catch (error) {
-        next(error);
-    }
-});
+            if (!avatar_url) {
+                return res.status(StatusConstant.INTERNAL_SERVER_ERROR).json(
+                    ResponseUtils.serverErrorResponse('Failed to upload file')
+                );
+            }
+
+            const updatedUser = await repos.users.updateUserInfo(id, {
+                avatar_url
+            });
+
+            if (!updatedUser)
+                return res.status(StatusConstant.BAD_REQUEST).json(
+                    ResponseUtils.badRequestResponse(ApiConstant.USERS.PROFILE_PICTURE.description + ' thất bại')
+                )
+
+            await repos.user_avatars.addOldUserAvatar(id, old_avatar_url);
+            return res.status(StatusConstant.OK).json(
+                ResponseUtils.successResponse(ApiConstant.USERS.PROFILE_PICTURE.description + ' thành công', {
+                    updatedUser
+                })
+            );
+        } catch (error) {
+            next(error);
+        }
+    });
 
 export default UserRouter;

@@ -6,14 +6,16 @@ import crypto from "crypto";
 import ApiConstant from "../constants/api.constant.js";
 import jwt from "jsonwebtoken";
 import {ObjectId} from "mongodb";
+import 'dotenv/config'
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "your-refresh-secret-key";
 const TOKEN_EXPIRY = process.env.TOKEN_EXPIRY || "2h";
 const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || "7d";
+const DEFAULT_USER_AVATAR_URL = process.env.DEFAULT_USER_AVATAR_URL;
 
 const AuthController = {
-    register : async (req, res, next) => {
+    register: async (req, res, next) => {
         try {
             const {
                 first_name,
@@ -45,7 +47,7 @@ const AuthController = {
                 gender,
                 date_of_birth,
                 phone_number,
-                avatar_url,
+                avatar_url: avatar_url ? avatar_url : DEFAULT_USER_AVATAR_URL,
                 password: hashedPassword,
                 // is_verified: false,
                 is_verified: true, // vì đã xác thực số điện thoại trong quá trình đăng ký.
