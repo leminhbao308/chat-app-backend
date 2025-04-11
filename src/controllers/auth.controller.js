@@ -18,6 +18,7 @@ const AuthController = {
             const {
                 first_name,
                 last_name,
+                gender, // 'male' or 'female'
                 date_of_birth,
                 password,
                 avatar_url,
@@ -41,6 +42,7 @@ const AuthController = {
             const user = {
                 first_name,
                 last_name,
+                gender,
                 date_of_birth,
                 phone_number,
                 avatar_url,
@@ -374,13 +376,13 @@ const AuthController = {
             //     phone_number,
             //     reset_code
             // );
-            // 
+            //
             // if (!resetToken) {
             //     return res.status(StatusConstant.BAD_REQUEST).json(
             //         ResponseUtils.errorResponse('Mã đặt lại mật khẩu không hợp lệ hoặc đã hết hạn')
             //     );
             // }
- 
+
             // ✅ Đã xác thực mã OTP ở frontend bằng Firebase → không cần xác minh thêm ở backend nữa
             // ❌ Trước đây backend vẫn kiểm tra định dạng mã OTP → gây lỗi 400 không cần thiết nếu OTP không hợp lệ
             // 👉 Giờ chỉ cần đảm bảo có giá trị `reset_code` (để log/debug) là đủ

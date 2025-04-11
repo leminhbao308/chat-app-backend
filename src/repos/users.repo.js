@@ -40,6 +40,8 @@ const UsersRepo = {
                 updateFields.first_name = userInfoPayload.first_name;
             if (userInfoPayload.last_name)
                 updateFields.last_name = userInfoPayload.last_name;
+            if (userInfoPayload.gender)
+                updateFields.gender = userInfoPayload.gender;
             if (userInfoPayload.date_of_birth)
                 updateFields.date_of_birth = userInfoPayload.date_of_birth;
             if (userInfoPayload.avatar_url)
