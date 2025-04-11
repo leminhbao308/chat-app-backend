@@ -18,6 +18,7 @@ const userValidation = {
         body: Joi.object({
             first_name: Joi.string().optional(),
             last_name: Joi.string().optional(),
+            gender: Joi.string().optional().valid(ValidationConstant.GENDER.M, ValidationConstant.GENDER.F),
             date_of_birth: Joi.string()
                 .pattern(ValidationConstant.REGEX.DATE).optional()
                 .messages({ 'string.pattern.base': 'Date of birth must be in DD-MM-YYYY format' }),
