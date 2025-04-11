@@ -65,6 +65,11 @@ const ValidationConstant = {
         AUD: "audio",
         DOC: "document"
     },
+
+    GENDER: {
+        M: "male",
+        F: "female"
+    }
 }
 
 export default ValidationConstant;
