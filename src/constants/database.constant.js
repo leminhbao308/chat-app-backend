@@ -8,7 +8,7 @@ const DatabaseConstant = {
     MONGO_URI: process.env.MONGO_URI || (() => { throw new Error("No MONGO_URI value in environment variable list!") })(),
     MONGO_USERNAME: process.env.MONGO_USERNAME || (() => { throw new Error("No MONGO_USERNAME value in environment variable list!") })(),
     MONGO_PASSWORD: process.env.MONGO_PASSWORD || (() => { throw new Error("No MONGO_PASSWORD value in environment variable list!") })(),
-    
+
     // Connection Pool Settings
     MONGO_POOL_SIZE: process.env.MONGO_POOL_SIZE || 10,
     MONGO_MAX_IDLE_TIME_MS: process.env.MONGO_MAX_IDLE_TIME_MS || 60000,
@@ -22,7 +22,8 @@ const DatabaseConstant = {
         USERS: 'users',
         REFRESH_TOKENS: 'refresh_tokens',
         VERIFICATION_TOKENS: 'verification_tokens',
-        PASSWORD_RESET_TOKENS: 'password_reset_tokens'
+        PASSWORD_RESET_TOKENS: 'password_reset_tokens',
+        USER_AVATARS: 'user_avatars'
     },
 
     // Index names

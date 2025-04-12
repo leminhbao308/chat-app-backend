@@ -23,6 +23,7 @@ const userValidation = {
                 .pattern(ValidationConstant.REGEX.DATE).optional()
                 .messages({ 'string.pattern.base': 'Date of birth must be in DD-MM-YYYY format' }),
             avatar_url: Joi.string().uri().optional(),
+            thumbnail_url: Joi.string().uri().optional(),
             phone_number: Joi.string()
                 .pattern(ValidationConstant.REGEX.PHONE).optional()
                 .messages({ 'string.pattern.base': 'Phone number must be a valid international format' }),

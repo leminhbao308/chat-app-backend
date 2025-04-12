@@ -62,7 +62,7 @@ const ApiConstant = {
         //     description: 'Đặt lại mật khẩu'
         // },
         RESET_PASSWORD: {
-            path: '/reset-password/confirm',
+            path: '/reset-password',
             method: 'put',
             description: 'Xác thực mã OTP và đặt lại mật khẩu'
         },
@@ -107,12 +107,19 @@ const ApiConstant = {
             method: 'put',
             description: 'Cập nhật trạng thái người dùng',
         },
-        // PUT /profile-picture - Cập nhật ảnh đại diện
+        // POST /profile-picture - Cập nhật ảnh đại diện
         PROFILE_PICTURE: {
             path: '/profile-picture',
-            method: 'put',
+            method: 'post',
             description: 'Cập nhật ảnh đại diện'
+        },
+        // PUT /profile-picture/old - Lấy danh sách ảnh đại diện cũ
+        PROFILE_PICTURE_OLD: {
+            path: '/profile-picture/old',
+            method: 'get',
+            description: 'Lấy danh sách ảnh đại diện cũ'
         }
+
     },
 
     // Contacts/Friends Routes
@@ -579,7 +586,7 @@ const ApiConstant = {
             method: 'post',
             description: 'Khôi phục dữ liệu từ bản sao lưu'
         }
-    }
+    },
 };
 
 export default ApiConstant;

@@ -6,14 +6,17 @@ import crypto from "crypto";
 import ApiConstant from "../constants/api.constant.js";
 import jwt from "jsonwebtoken";
 import {ObjectId} from "mongodb";
+import 'dotenv/config'
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "your-refresh-secret-key";
 const TOKEN_EXPIRY = process.env.TOKEN_EXPIRY || "2h";
 const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || "7d";
+const DEFAULT_USER_AVATAR_URL = process.env.DEFAULT_USER_AVATAR_URL;
+const DEFAULT_THUMBNAIL_URL = process.env.DEFAULT_THUMBNAIL_URL;
 
 const AuthController = {
-    register : async (req, res, next) => {
+    register: async (req, res, next) => {
         try {
             const {
                 first_name,
@@ -22,6 +25,7 @@ const AuthController = {
                 date_of_birth,
                 password,
                 avatar_url,
+                thumbnail_url,
                 phone_number
             } = req.body;
 
@@ -45,7 +49,8 @@ const AuthController = {
                 gender,
                 date_of_birth,
                 phone_number,
-                avatar_url,
+                avatar_url: avatar_url ? avatar_url : DEFAULT_USER_AVATAR_URL,
+                thumbnail_url: thumbnail_url ? thumbnail_url : DEFAULT_THUMBNAIL_URL,
                 password: hashedPassword,
                 // is_verified: false,
                 is_verified: true, // vì đã xác thực số điện thoại trong quá trình đăng ký.
@@ -207,8 +212,8 @@ const AuthController = {
 
     logout: async (req, res, next) => {
         try {
-            // Get refresh token from cookie or body
-            const refreshToken = req.cookies.refreshToken || req.body.refresh_token;
+            // Get refresh token from cookie or body]
+            const {refreshToken} = req.cookies.refreshToken || req.body;
 
             if (refreshToken) {
                 // Delete refresh token from database
@@ -359,7 +364,7 @@ const AuthController = {
 
     resetPassword: async (req, res, next) => {
         try {
-            const {phone_number, reset_code, new_password} = req.body;
+            const {phone_number, new_password} = req.body;
 
             // Find user by phone
             const user = await repos.auth.getUserByPhone(phone_number);
@@ -388,14 +393,14 @@ const AuthController = {
             // 👉 Giờ chỉ cần đảm bảo có giá trị `reset_code` (để log/debug) là đủ
             // ✅ Đã xác thực mã OTP ở frontend bằng Firebase → không cần xác minh lại ở backend
             // ❗ Tuy nhiên, ta vẫn kiểm tra định dạng reset_code để tránh request sai định dạng gây lỗi 400
-            if (!reset_code || !/^\d{6}$/.test(reset_code)) {
-                return res.status(StatusConstant.BAD_REQUEST).json(
-                    ResponseUtils.errorResponse('Mã OTP không hợp lệ. Vui lòng kiểm tra lại.')
-                );
-            }
+            // if (!reset_code || !/^\d{6}$/.test(reset_code)) {
+            //     return res.status(StatusConstant.BAD_REQUEST).json(
+            //         ResponseUtils.errorResponse('Mã OTP không hợp lệ. Vui lòng kiểm tra lại.')
+            //     );
+            // }
 
-            // 👉 In log để hỗ trợ debug nếu cần
-            console.log("[RESET_PASSWORD] Số điện thoại:", phone_number, "- OTP:", reset_code);
+            // // 👉 In log để hỗ trợ debug nếu cần
+            // console.log("[RESET_PASSWORD] Số điện thoại:", phone_number, "- OTP:", reset_code);
 
             // Hash new password
             const salt = await bcrypt.genSalt(10);
@@ -430,7 +435,7 @@ const AuthController = {
     changePassword: async (req, res, next) => {
         try {
             const {current_password, new_password} = req.body;
-            const userId = req.params.user_id;
+            const userId = ObjectId.createFromHexString(req.user.user_id);
 
             // Find user by ID
             const user = await repos.auth.getUserById(userId, true);
