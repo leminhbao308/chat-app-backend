@@ -39,7 +39,7 @@ const ApiConstant = {
         },
         // POST /change-password - Yêu cầu thay đổi mật khẩu
         CHANGE_PASSWORD: {
-            path: '/change-password/user_id',
+            path: '/change-password',
             method: 'post',
             description: 'Yêu cầu thay đổi mật khẩu'
         },
@@ -64,7 +64,7 @@ const ApiConstant = {
         RESET_PASSWORD: {
             path: '/reset-password',
             method: 'put',
-            description: 'Xác thực mã OTP và đặt lại mật khẩu'
+            description: 'Đặt lại mật khẩu'
         },
         // POST /verify-reset-code
         VERIFY_RESET_CODE: {
