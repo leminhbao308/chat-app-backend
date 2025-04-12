@@ -371,47 +371,13 @@ const AuthController = {
 
             if (!user) {
                 return res.status(StatusConstant.BAD_REQUEST).json(
-                    ResponseUtils.errorResponse('Mã đặt lại mật khẩu không hợp lệ')
+                    ResponseUtils.errorResponse('Không tìm thấy user!')
                 );
             }
-
-            // Commented out: Old OTP verification using DB reset token
-            // const resetToken = repos.auth.findResetTokenByUserIdAndPhoneNumberAndResetCode(
-            //     user._id,
-            //     phone_number,
-            //     reset_code
-            // );
-            //
-            // if (!resetToken) {
-            //     return res.status(StatusConstant.BAD_REQUEST).json(
-            //         ResponseUtils.errorResponse('Mã đặt lại mật khẩu không hợp lệ hoặc đã hết hạn')
-            //     );
-            // }
-
-            // ✅ Đã xác thực mã OTP ở frontend bằng Firebase → không cần xác minh thêm ở backend nữa
-            // ❌ Trước đây backend vẫn kiểm tra định dạng mã OTP → gây lỗi 400 không cần thiết nếu OTP không hợp lệ
-            // 👉 Giờ chỉ cần đảm bảo có giá trị `reset_code` (để log/debug) là đủ
-            // ✅ Đã xác thực mã OTP ở frontend bằng Firebase → không cần xác minh lại ở backend
-            // ❗ Tuy nhiên, ta vẫn kiểm tra định dạng reset_code để tránh request sai định dạng gây lỗi 400
-            // if (!reset_code || !/^\d{6}$/.test(reset_code)) {
-            //     return res.status(StatusConstant.BAD_REQUEST).json(
-            //         ResponseUtils.errorResponse('Mã OTP không hợp lệ. Vui lòng kiểm tra lại.')
-            //     );
-            // }
-
-            // // 👉 In log để hỗ trợ debug nếu cần
-            // console.log("[RESET_PASSWORD] Số điện thoại:", phone_number, "- OTP:", reset_code);
 
             // Hash new password
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(new_password, salt);
-
-            // Commented out: Deletion of reset token as it's no longer used
-            // await repos.auth.deleteResetTokenById(resetToken._id);
-            // ✅ Giải thích:
-            // Trước đây backend kiểm tra mã OTP từ database (do backend tự sinh).
-            // Hiện tại mã OTP được gửi và xác thực bởi Firebase ở frontend,
-            // nên ta không cần truy vấn DB để xác minh nữa, chỉ cần kiểm tra định dạng cho an toàn.
 
             // Update password
             const updateResult = await repos.auth.updatePasswordByUserId(user._id, hashedPassword)
