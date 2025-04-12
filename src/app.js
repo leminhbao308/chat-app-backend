@@ -34,8 +34,7 @@ class App {
 
         // CORS configuration
         this.app.use(cors({
-            // origin: process.env.CORS_ORIGIN || '*',
-            origin: process.env.CORS_ORIGIN,
+            origin: process.env.CORS_ORIGIN || '*',
             credentials: true, // bật credentials: true để frontend có thể gửi cookie.
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
             allowedHeaders: ['Content-Type', 'Authorization']
