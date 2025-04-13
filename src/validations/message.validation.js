@@ -4,7 +4,7 @@ import ValidationConstant from "../constants/validation.constant.js";
 const messageValidation = {
     sendMessage: {
         params: Joi.object({
-            conversation_id: Joi.string().uuid().required()
+            conversationId: Joi.string().required()
         }),
         body: Joi.object({
             sender: Joi.string().required(),

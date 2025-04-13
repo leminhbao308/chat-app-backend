@@ -9,6 +9,7 @@ import validations from "../validations/index.js";
 import MulterMiddleware from "../middlewares/multer.middleware.js";
 import {ObjectId} from "mongodb";
 import authRepo from "../repos/auth.repo.js";
+import App from "../app.js";
 
 const UserRouter = express.Router();
 
@@ -84,6 +85,9 @@ UserRouter.put(ApiConstant.USERS.UPDATE.path, AuthMiddleware,
                 return res.status(StatusConstant.BAD_REQUEST).json(
                     ResponseUtils.badRequestResponse(ApiConstant.USERS.UPDATE.description + ' thất bại')
                 )
+
+            // Phát event thông báo cập nhật
+            App.getIO().emit('user info updated', updatedUser);
 
             return res.status(StatusConstant.OK).json(
                 ResponseUtils.successResponse(ApiConstant.USERS.UPDATE.description + ' thành công', {user: updatedUser})
@@ -181,6 +185,10 @@ UserRouter.post(ApiConstant.USERS.PROFILE_PICTURE.path, AuthMiddleware,
                 )
 
             await repos.user_avatars.addOldUserAvatar(id, old_avatar_url);
+
+            // Phát event thông báo cập nhật avatar
+            App.getIO().emit('avatar updated', updatedUser.avatar_url);
+
             return res.status(StatusConstant.OK).json(
                 ResponseUtils.successResponse(ApiConstant.USERS.PROFILE_PICTURE.description + ' thành công', {
                     updatedUser
