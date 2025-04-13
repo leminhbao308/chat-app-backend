@@ -32,10 +32,17 @@ class App {
         // Compression for performance
         this.app.use(compression());
 
-        // CORS configuration
+        const allowedOrigins = [process.env.CORS_ORIGIN, 'http://localhost:5000'];
+
         this.app.use(cors({
-            origin: process.env.CORS_ORIGIN || '*',
-            credentials: true, // bật credentials: true để frontend có thể gửi cookie.
+            origin: (origin, callback) => {
+                if (allowedOrigins.includes(origin) || !origin) { // Allow requests with no origin (e.g., same-origin)
+                    callback(null, true);
+                } else {
+                    callback(new Error('Not allowed by CORS'));
+                }
+            },
+            credentials: true,
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
             allowedHeaders: ['Content-Type', 'Authorization']
         }));
