@@ -5,7 +5,7 @@ import helmet from "helmet";
 import compression from "compression";
 import cors from "cors";
 
-import usersRouter from "./routes/users.route.js";
+import UsersRouter from "./routes/users.route.js";
 import AuthRouter from "./routes/auth.route.js";
 import NotFoundMiddleware from "./middlewares/notFound.middleware.js";
 import ErrorMiddleware from "./middlewares/error.middleware.js";
@@ -14,10 +14,25 @@ import MongoMiddleware from "./middlewares/mongo.middleware.js";
 import mongoHelper from "./helper/MongoHelper.js";
 import S3Middleware from "./middlewares/s3.middleware.js";
 import s3Helper from "./helper/s3.helper.js";
+import * as http from "node:http";
+import {Server} from "socket.io";
+import ConversationRouter from "./routes/conversations.route.js";
+import MessageRouter from "./routes/messages.route.js";
+import SocketService from "./services/socket.service.js";
+import SocketRouter from "./routes/socket.route.js";
+import ContactRouter from "./routes/contacts.route.js";
 
 class App {
     constructor() {
         this.app = express();
+        this.httpServer = http.createServer(this.app);
+        this.io = new Server(this.httpServer, {       // Initialize Socket.IO
+            cors: {
+                origin: process.env.CORS_ORIGIN || '*',
+                methods: ["GET", "POST"]
+            }
+        });
+        this.socketService = null; // Will be initialized after connections are established
         this.initializeMiddlewares();
         this.connectServices()
         this.initializeRoutes();
@@ -51,8 +66,8 @@ class App {
         this.app.use(logger(process.env.NODE_ENV === 'development' ? 'dev' : 'combined'));
 
         // Body parsing
-        this.app.use(express.json({ limit: '10mb' }));
-        this.app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+        this.app.use(express.json({limit: '10mb'}));
+        this.app.use(express.urlencoded({extended: true, limit: '10mb'}));
 
         // Cookie parsing
         this.app.use(cookieParser());
@@ -65,7 +80,11 @@ class App {
     initializeRoutes() {
         // Add routes
         this.app.use(ApiConstant.AUTH.ROOT_PATH, AuthRouter);
-        this.app.use(ApiConstant.USERS.ROOT_PATH, usersRouter);
+        this.app.use(ApiConstant.USERS.ROOT_PATH, UsersRouter);
+        this.app.use(ApiConstant.CONVERSATIONS.ROOT_PATH, ConversationRouter);
+        this.app.use(ApiConstant.MESSAGES.ROOT_PATH, MessageRouter);
+        this.app.use(ApiConstant.WEBSOCKET.ROOT_PATH, SocketRouter);
+        this.app.use(ApiConstant.CONTACTS.ROOT_PATH, ContactRouter);
     }
 
     handleErrors() {
@@ -79,6 +98,13 @@ class App {
     async connectServices() {
         await this.connectDatabase();
         await this.connectStorage();
+        this.initializeSocketService();
+    }
+
+    initializeSocketService() {
+        // Initialize the socket service with io instance
+        this.socketService = new SocketService(this.getIO());
+        console.log("Socket.IO service initialized");
     }
 
     async connectDatabase() {
@@ -138,14 +164,26 @@ class App {
     }
 
     listen(port) {
-        this.server = this.app.listen(port, () => {
+        this.httpServer.listen(port, () => {
             console.log(`Server running on port ${port}`);
         });
-        return this.server;
+        return this.httpServer;
     }
 
     getApp() {
         return this.app;
+    }
+
+    getIO() {
+        return this.io;
+    }
+
+    getSocketService() {
+        return this.socketService;
+    }
+
+    getConnectedUsers() {
+        return this.socketService ? this.socketService.getConnectedUsers() : new Map();
     }
 }
 

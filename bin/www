@@ -3,7 +3,6 @@
 /**
  * Module dependencies.
  */
-import * as http from "node:http";
 import App from "../src/app.js";
 import dotenv from "dotenv";
 
@@ -23,51 +22,15 @@ class Server {
     constructor(app, port) {
         this.app = app;
         this.port = port;
-        this.httpServer = null;
     }
 
     start() {
-        // Retrieve the actual Express app
-        const expressApp = this.app.getApp();
-
         // Set port on the Express app
+        const expressApp = this.app.getApp();
         expressApp.set('port', this.port);
 
-        this.httpServer = http.createServer(expressApp);
-
-        this.httpServer.listen(this.port);
-        this.httpServer.on('error', this.handleServerError.bind(this));
-        this.httpServer.on('listening', this.handleServerListening.bind(this));
-    }
-
-    handleServerError(error) {
-        if (error.syscall !== 'listen') {
-            throw error;
-        }
-
-        const bind = typeof this.port === 'string'
-            ? `Pipe ${this.port}`
-            : `Port ${this.port}`;
-
-        switch (error.code) {
-            case 'EACCES':
-                console.error(`${bind} requires elevated privileges`);
-                process.exit(1);
-                break;
-            case 'EADDRINUSE':
-                console.error(`${bind} is already in use`);
-                process.exit(1);
-                break;
-            default:
-                throw error;
-        }
-    }
-
-    handleServerListening() {
-        const addr = this.httpServer.address();
-        const bind = typeof addr === 'string'
-            ? `pipe ${addr}`
-            : `port ${addr.port}`;
+        // Use the existing HTTP server from App that already has Socket.IO attached
+        this.app.listen(this.port);
 
         console.log(`✅ Server started successfully`);
         console.log(`🌐 Listening on http://localhost:${this.port}`);
@@ -95,6 +58,5 @@ function normalizePort(val) {
 }
 
 // Initialize and start the server
-const expressApp = App;
-const server = new Server(expressApp, PORT);
-server.start()
+const server = new Server(App, PORT);
+server.start();

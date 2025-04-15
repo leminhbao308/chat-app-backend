@@ -19,6 +19,22 @@ const AuthRepo = {
         }
     },
 
+    isUserExistingById: async (userId) => {
+        try {
+            const existingUser = await mongoHelper.findOne(
+                DatabaseConstant.COLLECTIONS.USERS,
+                {_id: mongoHelper.extractObjectId(userId)}
+            );
+
+            // Simply return a boolean based on whether the user exists
+            return existingUser !== null && existingUser !== undefined;
+        } catch (err) {
+            console.error("Error checking if user exists:", err);
+            // In case of error, assume user doesn't exist
+            return false;
+        }
+    },
+
     saveUser: async (user) => {
         try {
             const result = await mongoHelper.insertOne(DatabaseConstant.COLLECTIONS.USERS, user);

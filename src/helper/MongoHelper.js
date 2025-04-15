@@ -266,6 +266,22 @@ class MongoHelper {
 
         return false;
     }
+
+    /**
+     * Thực hiện aggregation trên một collection
+     * @param {string} collectionName Tên collection
+     * @param {Array} pipeline Mảng các stage trong aggregation pipeline
+     * @param {Object} options Các tùy chọn
+     * @returns {Promise<Array>} Kết quả của aggregation
+     */
+    async aggregate(collectionName, pipeline, options = {}) {
+        if (!this.isConnected()) {
+            console.warn('No MongoDB connection established.');
+            console.warn('Trying to reconnect...')
+            await this.connect();
+        }
+        return this.db.collection(collectionName).aggregate(pipeline, options).toArray();
+    }
 }
 
 // Singleton instance
