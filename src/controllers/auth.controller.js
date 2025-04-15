@@ -262,10 +262,28 @@ const AuthController = {
                     {expiresIn: TOKEN_EXPIRY}
                 );
 
+                // Generate refresh token
+                const refreshToken = jwt.sign(
+                    {user_id: decoded.user_id, phone_number: decoded.phone_number},
+                    JWT_REFRESH_SECRET,
+                    {expiresIn: REFRESH_TOKEN_EXPIRY}
+                );
+
+                // Store refresh token in database
+                await repos.auth.saveRefreshToken(
+                    {
+                        user_id: decoded.user_id,
+                        token: refreshToken,
+                    }
+                );
+
                 return res.status(StatusConstant.OK).json(
                     ResponseUtils.successResponse(
                         ApiConstant.AUTH.REFRESH_TOKEN.description + ' thành công',
-                        {token: newToken}
+                        {
+                            token: newToken,
+                            refresh_token: refreshToken,
+                        }
                     )
                 );
             } catch (error) {
