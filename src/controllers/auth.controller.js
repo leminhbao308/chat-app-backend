@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import ApiConstant from "../constants/api.constant.js";
 import jwt from "jsonwebtoken";
-import { ObjectId } from "mongodb";
+import {ObjectId} from "mongodb";
 import 'dotenv/config'
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
@@ -191,8 +191,9 @@ const AuthController = {
             // Set refreshToken in HTTP-only cookie
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+                secure: true,
+                sameSite: 'None',
+                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 ngày
             });
 
             return res.status(StatusConstant.OK).json(
