@@ -253,6 +253,8 @@ const AuthController = {
 
             // Verify refresh token
             try {
+                await repos.auth.deleteRefreshToken(refreshToken);
+
                 const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
 
                 // Generate new token
@@ -262,14 +264,14 @@ const AuthController = {
                     {expiresIn: TOKEN_EXPIRY}
                 );
 
-                // Generate refresh token
+                // Generate new refresh token
                 const refreshToken = jwt.sign(
                     {user_id: decoded.user_id, phone_number: decoded.phone_number},
                     JWT_REFRESH_SECRET,
                     {expiresIn: REFRESH_TOKEN_EXPIRY}
                 );
 
-                // Store refresh token in database
+                // Store new refresh token in database
                 await repos.auth.saveRefreshToken(
                     {
                         user_id: decoded.user_id,
