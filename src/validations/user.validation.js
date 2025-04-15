@@ -1,49 +1,59 @@
-// validation/user.validation.js
-const { Joi } = require('express-validation');
+import {Joi} from 'express-validation';
+import ValidationConstant from "../constants/validation.constant.js";
 
 const userValidation = {
-    updateProfile: {
-        body: Joi.object({
-            fullName: Joi.string().optional(),
-            bio: Joi.string().max(200).optional(),
-            phoneNumber: Joi.string().optional(),
-            avatar: Joi.string().uri().optional(),
-            dateOfBirth: Joi.date().iso().optional(),
-            gender: Joi.string().valid('male', 'female', 'other').optional(),
-            location: Joi.string().optional()
+    getUserById: {
+        params: Joi.object({
+            id: Joi.string().required().length(24)
         })
     },
+
+    getUserByPhone: {
+        query: Joi.object({
+            phone_number: Joi.string().min(5).required()
+        })
+    },
+
+    updateUser: {
+        body: Joi.object({
+            first_name: Joi.string().optional(),
+            last_name: Joi.string().optional(),
+            gender: Joi.string().optional().valid(ValidationConstant.GENDER.M, ValidationConstant.GENDER.F),
+            date_of_birth: Joi.string()
+                .pattern(ValidationConstant.REGEX.DATE).optional()
+                .messages({ 'string.pattern.base': 'Date of birth must be in DD-MM-YYYY format' }),
+            avatar_url: Joi.string().uri().optional(),
+            thumbnail_url: Joi.string().uri().optional(),
+            phone_number: Joi.string()
+                .pattern(ValidationConstant.REGEX.PHONE).optional()
+                .messages({ 'string.pattern.base': 'Phone number must be a valid international format' }),
+            is_active: Joi.boolean().optional()
+        })
+    },
+
     searchUsers: {
         query: Joi.object({
-            query: Joi.string().required(),
+            search: Joi.string().optional(),
             page: Joi.number().integer().min(1).default(1),
-            limit: Joi.number().integer().min(1).max(100).default(20)
+            limit: Joi.number().integer().min(1).max(50).default(10),
+            sort_by: Joi.string().valid(
+                ValidationConstant.USER_ATT.FIRST_NAME,
+                ValidationConstant.USER_ATT.LAST_NAME,
+                ValidationConstant.AUDIT.CREATED,
+                ValidationConstant.USER_ATT.LAST_LOGIN
+            ).default(ValidationConstant.AUDIT.CREATED),
+            sort_order: Joi.string().valid(
+                ValidationConstant.SORT.ASC,
+                ValidationConstant.SORT.DESC
+            ).default(ValidationConstant.SORT.DESC)
         })
     },
-    getFriends: {
-        query: Joi.object({
-            page: Joi.number().integer().min(1).default(1),
-            limit: Joi.number().integer().min(1).max(100).default(20)
-        })
-    },
-    addFriend: {
+
+    toggleUserStatus: {
         body: Joi.object({
-            userId: Joi.string().required()
-        })
-    },
-    respondFriendRequest: {
-        params: Joi.object({
-            requestId: Joi.string().required()
-        }),
-        body: Joi.object({
-            action: Joi.string().valid('accept', 'reject').required()
-        })
-    },
-    blockUser: {
-        params: Joi.object({
-            userId: Joi.string().required()
+            online_status: Joi.string().required().equal('online', 'offline', 'busy')
         })
     }
 };
 
-module.exports = userValidation;
+export default userValidation;

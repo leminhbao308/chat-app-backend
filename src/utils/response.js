@@ -2,7 +2,7 @@
  * Response utilities
  * Cung cấp các hàm chuẩn hóa response cho API
  */
-import StatusConstant from '../constants/statusConstant.js';
+import StatusConstant from '../constants/status.constant.js';
 
 const ResponseUtils = {
 
