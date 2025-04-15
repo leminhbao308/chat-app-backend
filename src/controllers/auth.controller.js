@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import ApiConstant from "../constants/api.constant.js";
 import jwt from "jsonwebtoken";
-import {ObjectId} from "mongodb";
+import { ObjectId } from "mongodb";
 import 'dotenv/config'
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
@@ -90,7 +90,7 @@ const AuthController = {
 
     verifyPhoneNumber: async (req, res, next) => {
         try {
-            const {phone_number, verification_code} = req.body;
+            const { phone_number, verification_code } = req.body;
 
             // Find user by phone
             const user = await repos.auth.getUserByPhone(phone_number);
@@ -130,7 +130,7 @@ const AuthController = {
 
     login: async (req, res, next) => {
         try {
-            const {phone_number, password, device_id, device_type} = req.body;
+            const { phone_number, password, device_id, device_type } = req.body;
 
             // Find user by phone
             const user = await repos.auth.getUserByPhone(phone_number, true);
@@ -186,7 +186,7 @@ const AuthController = {
             await repos.auth.updateLastLoginByUserId(user._id);
 
             // Remove password from response
-            const {password: _, ...userWithoutPassword} = user;
+            const { password: _, ...userWithoutPassword } = user;
 
             // Set refreshToken in HTTP-only cookie
             res.cookie('refreshToken', refreshToken, {
@@ -213,7 +213,7 @@ const AuthController = {
     logout: async (req, res, next) => {
         try {
             // Get refresh token from cookie or body]
-            const {refreshToken} = req.cookies.refreshToken || req.body;
+            const { refreshToken } = req.cookies.refreshToken || req.body;
 
             if (refreshToken) {
                 // Delete refresh token from database
@@ -234,8 +234,8 @@ const AuthController = {
     refreshToken: async (req, res, next) => {
         try {
             // Get refresh token from cookie or body
-            const refreshToken = req.cookies.refreshToken || req.body.refresh_token;
-
+            const refreshToken = req.body.refresh_token;
+            console.log(refreshToken);
             if (!refreshToken) {
                 return res.status(StatusConstant.UNAUTHORIZED).json(
                     ResponseUtils.unauthorizedResponse('Không tìm thấy Refresh Token')
@@ -250,41 +250,42 @@ const AuthController = {
                     ResponseUtils.unauthorizedResponse('Refresh Token không hợp lệ')
                 );
             }
-
+            await repos.auth.deleteRefreshToken(refreshToken);
             // Verify refresh token
             try {
-                await repos.auth.deleteRefreshToken(refreshToken);
+
+                console.log("debug 1");
 
                 const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
-
+                console.log("debug 2");
                 // Generate new token
                 const newToken = jwt.sign(
-                    {user_id: decoded.user_id, phone_number: decoded.phone_number},
+                    { user_id: decoded.user_id, phone_number: decoded.phone_number },
                     JWT_SECRET,
-                    {expiresIn: TOKEN_EXPIRY}
+                    { expiresIn: TOKEN_EXPIRY }
                 );
-
+                console.log("debug 3");
                 // Generate new refresh token
-                const refreshToken = jwt.sign(
-                    {user_id: decoded.user_id, phone_number: decoded.phone_number},
+                const newRefreshToken = jwt.sign(
+                    { user_id: decoded.user_id, phone_number: decoded.phone_number },
                     JWT_REFRESH_SECRET,
-                    {expiresIn: REFRESH_TOKEN_EXPIRY}
+                    { expiresIn: REFRESH_TOKEN_EXPIRY }
                 );
-
+                console.log("debug 4");
                 // Store new refresh token in database
                 await repos.auth.saveRefreshToken(
                     {
                         user_id: decoded.user_id,
-                        token: refreshToken,
+                        token: newRefreshToken,
                     }
                 );
-
+                console.log("debug 5");
                 return res.status(StatusConstant.OK).json(
                     ResponseUtils.successResponse(
                         ApiConstant.AUTH.REFRESH_TOKEN.description + ' thành công',
                         {
                             token: newToken,
-                            refresh_token: refreshToken,
+                            refresh_token: newRefreshToken,
                         }
                     )
                 );
@@ -293,6 +294,8 @@ const AuthController = {
                 await repos.auth.deleteRefreshToken(refreshToken);
 
                 res.clearCookie('refreshToken');
+                console.log(error);
+
 
                 return res.status(StatusConstant.UNAUTHORIZED).json(
                     ResponseUtils.unauthorizedResponse('Refresh Token hết hạn hoặc không hợp lệ')
@@ -305,7 +308,7 @@ const AuthController = {
 
     resetPasswordRequest: async (req, res, next) => {
         try {
-            const {phone_number} = req.body;
+            const { phone_number } = req.body;
 
             // Find user by phone
             const user = await repos.auth.getUserByPhone(phone_number);
@@ -350,7 +353,7 @@ const AuthController = {
 
     verifyPasswordResetCode: async (req, res, next) => {
         try {
-            const {phone_number, reset_code} = req.body;
+            const { phone_number, reset_code } = req.body;
 
             // Find user by phone
             const user = await repos.auth.getUserByPhone(phone_number);
@@ -384,7 +387,7 @@ const AuthController = {
 
     resetPassword: async (req, res, next) => {
         try {
-            const {phone_number, new_password} = req.body;
+            const { phone_number, new_password } = req.body;
 
             // Find user by phone
             const user = await repos.auth.getUserByPhone(phone_number);
@@ -420,7 +423,7 @@ const AuthController = {
 
     changePassword: async (req, res, next) => {
         try {
-            const {current_password, new_password} = req.body;
+            const { current_password, new_password } = req.body;
             const userId = ObjectId.createFromHexString(req.user.user_id);
 
             // Find user by ID
