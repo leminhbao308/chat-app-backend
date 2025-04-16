@@ -98,6 +98,41 @@ const ContactController = {
         }
     },
 
+    async rejectContactRequest(req, res) {
+        try {
+            const userId = req.user.user_id;
+            const { requestId: request_id } = req.params;
+
+            // Lấy thông tin yêu cầu kết bạn
+            const request = await mongoHelper.findOne(
+                DatabaseConstant.COLLECTIONS.CONTACTS,
+                {
+                    _id: mongoHelper.extractObjectId(request_id),
+                    contact_id: mongoHelper.extractObjectId(userId),
+                    status: ContactConstant.STATUS.PENDING
+                }
+            );
+
+            if (!request) {
+                return res.status(StatusConstant.NOT_FOUND).json(
+                    ResponseUtils.notFoundResponse("Contact request not found")
+                );
+            }
+
+            // Từ chối yêu cầu kết bạn
+            await repos.contact.rejectContactRequest(userId, request.user_id);
+
+            res.status(StatusConstant.OK).json(
+                ResponseUtils.successResponse("Contact request rejected")
+            );
+        } catch (error) {
+            console.error("Error rejecting contact request:", error);
+            res.status(StatusConstant.INTERNAL_SERVER_ERROR).json(
+                ResponseUtils.serverErrorResponse("Failed to reject contact request")
+            );
+        }
+    },
+
     async getContactList(req, res) {
         try {
             const userId = req.user.user_id;

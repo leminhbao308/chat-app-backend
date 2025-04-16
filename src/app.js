@@ -21,6 +21,7 @@ import MessageRouter from "./routes/messages.route.js";
 import SocketService from "./services/socket.service.js";
 import SocketRouter from "./routes/socket.route.js";
 import ContactRouter from "./routes/contacts.route.js";
+import SwaggerRouter from "./routes/swagger.route.js";
 
 class App {
     constructor() {
@@ -85,6 +86,9 @@ class App {
         this.app.use(ApiConstant.MESSAGES.ROOT_PATH, MessageRouter);
         this.app.use(ApiConstant.WEBSOCKET.ROOT_PATH, SocketRouter);
         this.app.use(ApiConstant.CONTACTS.ROOT_PATH, ContactRouter);
+
+        // Add Swagger Documents
+        this.app.use("/api-docs", SwaggerRouter);
     }
 
     handleErrors() {

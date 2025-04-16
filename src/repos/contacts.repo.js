@@ -105,6 +105,67 @@ const ContactRepo = {
         }
     },
 
+    async rejectContactRequest(userId, contactId) {
+        try {
+            // Cập nhật trạng thái request thành 'rejected'
+            await mongoHelper.updateOne(
+                DatabaseConstant.COLLECTIONS.CONTACTS,
+                {
+                    user_id: mongoHelper.extractObjectId(contactId),
+                    contact_id: mongoHelper.extractObjectId(userId),
+                    status: ContactConstant.STATUS.PENDING
+                },
+                {
+                    $set: {
+                        status: ContactConstant.STATUS.REJECTED,
+                        updated_at: new Date()
+                    }
+                }
+            );
+
+            // Tạo mối quan hệ hai chiều bằng cách thêm một record ngược lại
+            const existingReverse = await mongoHelper.findOne(
+                DatabaseConstant.COLLECTIONS.CONTACTS,
+                {
+                    user_id: mongoHelper.extractObjectId(userId),
+                    contact_id: mongoHelper.extractObjectId(contactId)
+                }
+            );
+
+            if (!existingReverse) {
+                await mongoHelper.insertOne(
+                    DatabaseConstant.COLLECTIONS.CONTACTS,
+                    {
+                        user_id: mongoHelper.extractObjectId(userId),
+                        contact_id: mongoHelper.extractObjectId(contactId),
+                        status: ContactConstant.STATUS.REJECTED,
+                        created_at: new Date(),
+                        updated_at: new Date()
+                    }
+                );
+            } else {
+                await mongoHelper.updateOne(
+                    DatabaseConstant.COLLECTIONS.CONTACTS,
+                    {
+                        user_id: mongoHelper.extractObjectId(userId),
+                        contact_id: mongoHelper.extractObjectId(contactId)
+                    },
+                    {
+                        $set: {
+                            status: ContactConstant.STATUS.REJECTED,
+                            updated_at: new Date()
+                        }
+                    }
+                );
+            }
+
+            return true;
+        } catch (error) {
+            console.error("Error rejecting contact request:", error);
+            throw error;
+        }
+    },
+
     async getContactList(userId) {
         try {
             // Lấy danh sách contact đã được chấp nhận
