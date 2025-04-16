@@ -46,7 +46,7 @@ ContactRouter.post(
 ContactRouter.post(
     ApiConstant.CONTACTS.REJECT.path,
     AuthMiddleware,
-    ResponseUtils.developingResponse
+    controllers.contact.rejectContactRequest
 );
 
 // Xóa liên hệ
