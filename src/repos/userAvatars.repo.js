@@ -64,10 +64,18 @@ const UserAvatarsRepo = {
                 )
             }
 
-            const updateFields = {};
-            updateFields.updated_at = new Date();
+            // Kiểm tra xem URL đã tồn tại trong mảng avatars chưa
+            const userOldAvatars = await mongoHelper.findOne(
+                DatabaseConstant.COLLECTIONS.USER_AVATARS,
+                { user_id: id }
+            );
 
-            // Thêm oldAvatarUrl vào mảng avatars của user
+            // Nếu URL đã tồn tại trong mảng avatars, không thêm vào nữa
+            if (userOldAvatars && userOldAvatars.avatars && userOldAvatars.avatars.includes(oldAvatarUrl)) {
+                return await UserAvatarsRepo.getAvatarListByUserId(userId);
+            }
+
+            // Thêm oldAvatarUrl vào mảng avatars của user nếu URL chưa tồn tại
             await mongoHelper.updateOne(
                 DatabaseConstant.COLLECTIONS.USER_AVATARS,
                 { user_id: id },

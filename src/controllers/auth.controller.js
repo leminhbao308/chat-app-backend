@@ -90,7 +90,7 @@ const AuthController = {
 
     verifyPhoneNumber: async (req, res, next) => {
         try {
-            const {phone_number, verification_code} = req.body;
+            const { phone_number, verification_code } = req.body;
 
             // Find user by phone
             const user = await repos.auth.getUserByPhone(phone_number);
@@ -130,7 +130,7 @@ const AuthController = {
 
     login: async (req, res, next) => {
         try {
-            const {phone_number, password, device_id, device_type} = req.body;
+            const { phone_number, password, device_id, device_type } = req.body;
 
             // Find user by phone
             const user = await repos.auth.getUserByPhone(phone_number, true);
@@ -186,13 +186,14 @@ const AuthController = {
             await repos.auth.updateLastLoginByUserId(user._id);
 
             // Remove password from response
-            const {password: _, ...userWithoutPassword} = user;
+            const { password: _, ...userWithoutPassword } = user;
 
             // Set refreshToken in HTTP-only cookie
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+                secure: true,
+                sameSite: 'None',
+                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 ngày
             });
 
             return res.status(StatusConstant.OK).json(
@@ -213,7 +214,7 @@ const AuthController = {
     logout: async (req, res, next) => {
         try {
             // Get refresh token from cookie or body]
-            const {refreshToken} = req.cookies.refreshToken || req.body;
+            const { refreshToken } = req.cookies.refreshToken || req.body;
 
             if (refreshToken) {
                 // Delete refresh token from database
@@ -234,8 +235,8 @@ const AuthController = {
     refreshToken: async (req, res, next) => {
         try {
             // Get refresh token from cookie or body
-            const refreshToken = req.cookies.refreshToken || req.body.refresh_token;
-
+            const refreshToken = req.body.refresh_token;
+            console.log(refreshToken);
             if (!refreshToken) {
                 return res.status(StatusConstant.UNAUTHORIZED).json(
                     ResponseUtils.unauthorizedResponse('Không tìm thấy Refresh Token')
@@ -250,22 +251,43 @@ const AuthController = {
                     ResponseUtils.unauthorizedResponse('Refresh Token không hợp lệ')
                 );
             }
-
+            await repos.auth.deleteRefreshToken(refreshToken);
             // Verify refresh token
             try {
-                const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
 
+                console.log("debug 1");
+
+                const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
+                console.log("debug 2");
                 // Generate new token
                 const newToken = jwt.sign(
-                    {user_id: decoded.user_id, phone_number: decoded.phone_number},
+                    { user_id: decoded.user_id, phone_number: decoded.phone_number },
                     JWT_SECRET,
-                    {expiresIn: TOKEN_EXPIRY}
+                    { expiresIn: TOKEN_EXPIRY }
                 );
-
+                console.log("debug 3");
+                // Generate new refresh token
+                const newRefreshToken = jwt.sign(
+                    { user_id: decoded.user_id, phone_number: decoded.phone_number },
+                    JWT_REFRESH_SECRET,
+                    { expiresIn: REFRESH_TOKEN_EXPIRY }
+                );
+                console.log("debug 4");
+                // Store new refresh token in database
+                await repos.auth.saveRefreshToken(
+                    {
+                        user_id: decoded.user_id,
+                        token: newRefreshToken,
+                    }
+                );
+                console.log("debug 5");
                 return res.status(StatusConstant.OK).json(
                     ResponseUtils.successResponse(
                         ApiConstant.AUTH.REFRESH_TOKEN.description + ' thành công',
-                        {token: newToken}
+                        {
+                            token: newToken,
+                            refresh_token: newRefreshToken,
+                        }
                     )
                 );
             } catch (error) {
@@ -273,6 +295,8 @@ const AuthController = {
                 await repos.auth.deleteRefreshToken(refreshToken);
 
                 res.clearCookie('refreshToken');
+                console.log(error);
+
 
                 return res.status(StatusConstant.UNAUTHORIZED).json(
                     ResponseUtils.unauthorizedResponse('Refresh Token hết hạn hoặc không hợp lệ')
@@ -285,7 +309,7 @@ const AuthController = {
 
     resetPasswordRequest: async (req, res, next) => {
         try {
-            const {phone_number} = req.body;
+            const { phone_number } = req.body;
 
             // Find user by phone
             const user = await repos.auth.getUserByPhone(phone_number);
@@ -330,7 +354,7 @@ const AuthController = {
 
     verifyPasswordResetCode: async (req, res, next) => {
         try {
-            const {phone_number, reset_code} = req.body;
+            const { phone_number, reset_code } = req.body;
 
             // Find user by phone
             const user = await repos.auth.getUserByPhone(phone_number);
@@ -364,54 +388,20 @@ const AuthController = {
 
     resetPassword: async (req, res, next) => {
         try {
-            const {phone_number, new_password} = req.body;
+            const { phone_number, new_password } = req.body;
 
             // Find user by phone
             const user = await repos.auth.getUserByPhone(phone_number);
 
             if (!user) {
                 return res.status(StatusConstant.BAD_REQUEST).json(
-                    ResponseUtils.errorResponse('Mã đặt lại mật khẩu không hợp lệ')
+                    ResponseUtils.errorResponse('Không tìm thấy user!')
                 );
             }
-
-            // Commented out: Old OTP verification using DB reset token
-            // const resetToken = repos.auth.findResetTokenByUserIdAndPhoneNumberAndResetCode(
-            //     user._id,
-            //     phone_number,
-            //     reset_code
-            // );
-            //
-            // if (!resetToken) {
-            //     return res.status(StatusConstant.BAD_REQUEST).json(
-            //         ResponseUtils.errorResponse('Mã đặt lại mật khẩu không hợp lệ hoặc đã hết hạn')
-            //     );
-            // }
-
-            // ✅ Đã xác thực mã OTP ở frontend bằng Firebase → không cần xác minh thêm ở backend nữa
-            // ❌ Trước đây backend vẫn kiểm tra định dạng mã OTP → gây lỗi 400 không cần thiết nếu OTP không hợp lệ
-            // 👉 Giờ chỉ cần đảm bảo có giá trị `reset_code` (để log/debug) là đủ
-            // ✅ Đã xác thực mã OTP ở frontend bằng Firebase → không cần xác minh lại ở backend
-            // ❗ Tuy nhiên, ta vẫn kiểm tra định dạng reset_code để tránh request sai định dạng gây lỗi 400
-            // if (!reset_code || !/^\d{6}$/.test(reset_code)) {
-            //     return res.status(StatusConstant.BAD_REQUEST).json(
-            //         ResponseUtils.errorResponse('Mã OTP không hợp lệ. Vui lòng kiểm tra lại.')
-            //     );
-            // }
-
-            // // 👉 In log để hỗ trợ debug nếu cần
-            // console.log("[RESET_PASSWORD] Số điện thoại:", phone_number, "- OTP:", reset_code);
 
             // Hash new password
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(new_password, salt);
-
-            // Commented out: Deletion of reset token as it's no longer used
-            // await repos.auth.deleteResetTokenById(resetToken._id);
-            // ✅ Giải thích:
-            // Trước đây backend kiểm tra mã OTP từ database (do backend tự sinh).
-            // Hiện tại mã OTP được gửi và xác thực bởi Firebase ở frontend,
-            // nên ta không cần truy vấn DB để xác minh nữa, chỉ cần kiểm tra định dạng cho an toàn.
 
             // Update password
             const updateResult = await repos.auth.updatePasswordByUserId(user._id, hashedPassword)
@@ -434,7 +424,7 @@ const AuthController = {
 
     changePassword: async (req, res, next) => {
         try {
-            const {current_password, new_password} = req.body;
+            const { current_password, new_password } = req.body;
             const userId = ObjectId.createFromHexString(req.user.user_id);
 
             // Find user by ID
