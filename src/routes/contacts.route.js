@@ -3,7 +3,7 @@ import express from 'express';
 import AuthMiddleware from '../middlewares/auth.middleware.js';
 import ApiConstant from "../constants/api.constant.js";
 import controllers from "../controllers/index.js";
-import ResponseUtils from "../utils/response.js";
+import ResponseUtils from "../utils/response.util.js";
 
 const ContactRouter = express.Router();
 
@@ -48,6 +48,13 @@ ContactRouter.post(
     AuthMiddleware,
     controllers.contact.rejectContactRequest
 );
+
+// Hủy yêu cầu kết bạn
+ContactRouter.post(
+    ApiConstant.CONTACTS.CANCEL.path,
+    AuthMiddleware,
+    controllers.contact.cancelContactRequest
+)
 
 // Xóa liên hệ
 ContactRouter.post(

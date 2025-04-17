@@ -1,6 +1,6 @@
 // controllers/contact.controller.js
-import mongoHelper from '../helper/MongoHelper.js';
-import ResponseUtils from '../utils/response.js';
+import mongoHelper from '../helper/mongo.helper.js';
+import ResponseUtils from '../utils/response.util.js';
 import StatusConstant from '../constants/status.constant.js';
 import DatabaseConstant from '../constants/database.constant.js';
 import ContactConstant from '../constants/contact.constant.js';
@@ -14,7 +14,7 @@ const ContactController = {
 
             if (!requestReceiver) {
                 return res.status(StatusConstant.BAD_REQUEST).json(
-                    ResponseUtils.badRequestResponse("Contact ID is required")
+                    ResponseUtils.badRequestResponse("User ID is required")
                 );
             }
 
@@ -27,14 +27,22 @@ const ContactController = {
 
             // Kiểm tra contact có tồn tại không
             const contactExists = await mongoHelper.findOne(
-                DatabaseConstant.COLLECTIONS.USERS,
-                { _id: mongoHelper.extractObjectId(requestReceiver) }
+                DatabaseConstant.COLLECTIONS.CONTACTS,
+                {
+                    'members': {
+                        $all: [
+                            mongoHelper.extractObjectId(requestSender),
+                            mongoHelper.extractObjectId(requestReceiver)
+                        ],
+                        $size: 2
+                    }
+                }
             );
 
-            if (!contactExists) {
-                return res.status(StatusConstant.NOT_FOUND).json(
-                    ResponseUtils.notFoundResponse("Contact not found")
-                );
+            if (contactExists && contactExists.status === ContactConstant.STATUS.ACCEPTED) {
+                return res.status(StatusConstant.CONFLICT).json(
+                    ResponseUtils.baseResponse(false, "Already contacted with this user!", StatusConstant.CONFLICT)
+                )
             }
 
             // Gửi yêu cầu kết bạn hoặc chấp nhận yêu cầu nếu đã tồn tại
@@ -50,7 +58,7 @@ const ContactController = {
             }
 
             res.status(StatusConstant.CREATED).json(
-                ResponseUtils.successResponse("Contact request sent")
+                ResponseUtils.successResponse("Contact request sent", result.newRequest)
             );
         } catch (error) {
             console.error("Error creating contact request:", error);
@@ -63,17 +71,10 @@ const ContactController = {
     async acceptContactRequest(req, res) {
         try {
             const userId = req.user.user_id;
-            const { requestId: request_id } = req.params;
+            const { requestId: requestSender } = req.params;
 
             // Lấy thông tin yêu cầu kết bạn
-            const request = await mongoHelper.findOne(
-                DatabaseConstant.COLLECTIONS.CONTACTS,
-                {
-                    _id: mongoHelper.extractObjectId(request_id),
-                    contact_id: mongoHelper.extractObjectId(userId),
-                    status: ContactConstant.STATUS.PENDING
-                }
-            );
+            const request = repos.contact.getPendingRequest(requestSender, userId);
 
             if (!request) {
                 return res.status(StatusConstant.NOT_FOUND).json(
@@ -82,10 +83,10 @@ const ContactController = {
             }
 
             // Chấp nhận yêu cầu kết bạn
-            await repos.contact.acceptContactRequest(userId, request.user_id);
+            await repos.contact.acceptContactRequest(request._id);
 
             // Tạo conversation cho hai người dùng
-            await repos.conversation.createConversationForContacts(userId, request.user_id);
+            await repos.conversation.createConversationForContacts(userId, request.requester);
 
             res.status(StatusConstant.OK).json(
                 ResponseUtils.successResponse("Contact request accepted and conversation created")
@@ -101,17 +102,10 @@ const ContactController = {
     async rejectContactRequest(req, res) {
         try {
             const userId = req.user.user_id;
-            const { requestId: request_id } = req.params;
+            const { requestId: requestSender } = req.params;
 
             // Lấy thông tin yêu cầu kết bạn
-            const request = await mongoHelper.findOne(
-                DatabaseConstant.COLLECTIONS.CONTACTS,
-                {
-                    _id: mongoHelper.extractObjectId(request_id),
-                    contact_id: mongoHelper.extractObjectId(userId),
-                    status: ContactConstant.STATUS.PENDING
-                }
-            );
+            const request = repos.contact.getPendingRequest(requestSender, userId);
 
             if (!request) {
                 return res.status(StatusConstant.NOT_FOUND).json(
@@ -120,7 +114,35 @@ const ContactController = {
             }
 
             // Từ chối yêu cầu kết bạn
-            await repos.contact.rejectContactRequest(userId, request.user_id);
+            await repos.contact.rejectContactRequest(request._id);
+
+            res.status(StatusConstant.OK).json(
+                ResponseUtils.successResponse("Contact request rejected")
+            );
+        } catch (error) {
+            console.error("Error rejecting contact request:", error);
+            res.status(StatusConstant.INTERNAL_SERVER_ERROR).json(
+                ResponseUtils.serverErrorResponse("Failed to reject contact request")
+            );
+        }
+    },
+
+    async cancelContactRequest(req, res) {
+        try {
+            const userId = req.user.user_id;
+            const { requestId: requestReceiver } = req.params;
+
+            // Lấy thông tin yêu cầu kết bạn
+            const request = repos.contact.getPendingRequest(userId, requestReceiver);
+
+            if (!request) {
+                return res.status(StatusConstant.NOT_FOUND).json(
+                    ResponseUtils.notFoundResponse("Contact request not found")
+                );
+            }
+
+            // Hủy yêu cầu kết bạn
+            await repos.contact.cancelContactRequest(request._id);
 
             res.status(StatusConstant.OK).json(
                 ResponseUtils.successResponse("Contact request rejected")
