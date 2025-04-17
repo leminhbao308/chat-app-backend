@@ -98,7 +98,21 @@ class MongoHelper {
             console.warn('Trying to reconnect...')
             await this.connect();
         }
-        return this.db.collection(collectionName).insertOne(document);
+
+        // Clone the document to avoid modifying the original
+        const docToInsert = { ...document };
+
+        // Check if created_at exists, if not add it
+        if (!docToInsert.created_at) {
+            docToInsert.created_at = new Date();
+        }
+
+        // Check if updated_at exists, if not add it
+        if (!docToInsert.updated_at) {
+            docToInsert.updated_at = new Date();
+        }
+
+        return this.db.collection(collectionName).insertOne(docToInsert);
     }
 
     /**
@@ -113,7 +127,26 @@ class MongoHelper {
             console.warn('Trying to reconnect...')
             await this.connect();
         }
-        return this.db.collection(collectionName).insertMany(documents);
+
+        // Clone and process each document in the array
+        const docsToInsert = documents.map(document => {
+            // Clone the document to avoid modifying the original
+            const docToInsert = { ...document };
+
+            // Check if created_at exists, if not add it
+            if (!docToInsert.created_at) {
+                docToInsert.created_at = new Date();
+            }
+
+            // Check if updated_at exists, if not add it
+            if (!docToInsert.updated_at) {
+                docToInsert.updated_at = new Date();
+            }
+
+            return docToInsert;
+        });
+
+        return this.db.collection(collectionName).insertMany(docsToInsert);
     }
 
     /**
@@ -162,7 +195,33 @@ class MongoHelper {
             console.warn('Trying to reconnect...')
             await this.connect();
         }
-        return this.db.collection(collectionName).updateOne(filter, update, options);
+
+        // Clone the update object to avoid modifying the original
+        let finalUpdate = { ...update };
+
+        // Check if the update is using operators like $set, $push, etc.
+        if (Object.keys(finalUpdate)[0]?.startsWith('$')) {
+            // If using $set, add updated_at to it
+            if (finalUpdate.$set) {
+                finalUpdate.$set = {
+                    ...finalUpdate.$set,
+                    updated_at: new Date()
+                };
+            } else {
+                // If not using $set but using other operators, add $set for updated_at
+                finalUpdate.$set = { updated_at: new Date() };
+            }
+        } else {
+            // If using direct field updates (not operators), convert to $set format
+            finalUpdate = {
+                $set: {
+                    ...finalUpdate,
+                    updated_at: new Date()
+                }
+            };
+        }
+
+        return this.db.collection(collectionName).updateOne(filter, finalUpdate, options);
     }
 
     /**
@@ -179,7 +238,33 @@ class MongoHelper {
             console.warn('Trying to reconnect...')
             await this.connect();
         }
-        return this.db.collection(collectionName).updateMany(filter, update, options);
+
+        // Clone the update object to avoid modifying the original
+        let finalUpdate = { ...update };
+
+        // Check if the update is using operators like $set, $push, etc.
+        if (Object.keys(finalUpdate)[0]?.startsWith('$')) {
+            // If using $set, add updated_at to it
+            if (finalUpdate.$set) {
+                finalUpdate.$set = {
+                    ...finalUpdate.$set,
+                    updated_at: new Date()
+                };
+            } else {
+                // If not using $set but using other operators, add $set for updated_at
+                finalUpdate.$set = { updated_at: new Date() };
+            }
+        } else {
+            // If using direct field updates (not operators), convert to $set format
+            finalUpdate = {
+                $set: {
+                    ...finalUpdate,
+                    updated_at: new Date()
+                }
+            };
+        }
+
+        return this.db.collection(collectionName).updateMany(filter, finalUpdate, options);
     }
 
     /**

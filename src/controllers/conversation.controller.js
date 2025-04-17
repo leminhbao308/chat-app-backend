@@ -1,5 +1,5 @@
-import mongoHelper from '../helper/MongoHelper.js';
-import ResponseUtils from '../utils/response.js';
+import mongoHelper from '../helper/mongo.helper.js';
+import ResponseUtils from '../utils/response.util.js';
 import StatusConstant from '../constants/status.constant.js';
 import DatabaseConstant from "../constants/database.constant.js";
 import repos from "../repos/index.js";
@@ -21,7 +21,7 @@ const conversationController = {
 
             // Kiểm tra xem tất cả người tham gia có tồn tại không
             for (const participantId of allParticipants) {
-                const isUserExisted = await repos.auth.isUserExistingById(participantId)
+                const isUserExisted = await repos.auth.isUserExisting(participantId)
 
                 if (!isUserExisted) {
                     return res.status(404).json({

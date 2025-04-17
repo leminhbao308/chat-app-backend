@@ -1,5 +1,5 @@
 import StatusConstant from "../constants/status.constant.js";
-import ResponseUtils from "../utils/response.js";
+import ResponseUtils from "../utils/response.util.js";
 import SocketConstant from "../constants/socket.constant.js";
 
 const SocketController = {
