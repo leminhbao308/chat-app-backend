@@ -1,33 +1,22 @@
-import mongoHelper from "../helper/MongoHelper.js";
+import mongoHelper from "../helper/mongo.helper.js";
 import DatabaseConstant from "../constants/database.constant.js";
 
 const AuthRepo = {
 
-    isUserExisting: async (phone_number) => {
+    isUserExisting: async (phoneNumberOrUserId) => {
         try {
+            // Check if the input might be a user ID
+            const query = isNaN(phoneNumberOrUserId) ?
+                {$or: [{phone_number: phoneNumberOrUserId}, {_id: phoneNumberOrUserId}]} :
+                {phone_number: phoneNumberOrUserId};
+
             const existingUser = await mongoHelper.findOne(
                 DatabaseConstant.COLLECTIONS.USERS,
-                {phone_number}
+                query
             );
 
-            // Simply return a boolean based on whether the user exists
-            return existingUser !== null && existingUser !== undefined;
-        } catch (err) {
-            console.error("Error checking if user exists:", err);
-            // In case of error, assume user doesn't exist
-            return false;
-        }
-    },
-
-    isUserExistingById: async (userId) => {
-        try {
-            const existingUser = await mongoHelper.findOne(
-                DatabaseConstant.COLLECTIONS.USERS,
-                {_id: mongoHelper.extractObjectId(userId)}
-            );
-
-            // Simply return a boolean based on whether the user exists
-            return existingUser !== null && existingUser !== undefined;
+            // Return a boolean based on whether the user exists
+            return !!existingUser;
         } catch (err) {
             console.error("Error checking if user exists:", err);
             // In case of error, assume user doesn't exist
@@ -47,25 +36,6 @@ const AuthRepo = {
         }
     },
 
-    saveVerificationToken: async (userId, phoneNumber, verificationCode) => {
-        try {
-            const id = mongoHelper.extractObjectId(userId);
-
-            await mongoHelper.insertOne(DatabaseConstant.COLLECTIONS.VERIFICATION_TOKENS, {
-                user_id: id,
-                phoneNumber,
-                verification_code: verificationCode,
-                expires_at: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
-                created_at: new Date()
-            });
-
-            // TODO: implement return object
-        } catch (err) {
-            console.error("Error saving verification code: ", err);
-            return null;
-        }
-    },
-
     saveRefreshToken: async (refreshTokenPayload) => {
         try {
             const userId = mongoHelper.extractObjectId(refreshTokenPayload.user_id)
@@ -79,32 +49,10 @@ const AuthRepo = {
                 created_at: new Date()
             });
 
-            // TODO: implement return object
+            return true;
         } catch (err) {
             console.error("Error saving refresh token: ", err);
-            return null;
-        }
-    },
-
-    saveResetToken: async (resetTokenPayload) => {
-        try {
-            const userId = mongoHelper.extractObjectId(resetTokenPayload.user_id);
-
-            await mongoHelper.insertOne(
-                DatabaseConstant.COLLECTIONS.PASSWORD_RESET_TOKENS,
-                {
-                    user_id: userId,
-                    phone_number: resetTokenPayload.phone_number,
-                    reset_code: resetTokenPayload.reset_code,
-                    expires_at: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
-                    created_at: new Date()
-                }
-            );
-
-            // TODO: implement return object
-        } catch (err) {
-            console.error("Error saving reset token: ", err);
-            return null;
+            return false;
         }
     },
 
@@ -151,27 +99,6 @@ const AuthRepo = {
         }
     },
 
-    getVerificationTokenByUserIdAndPhoneNumberAndVerificationCode: async (userId, phoneNumber, verificationCode) => {
-        try {
-            const id = mongoHelper.extractObjectId(userId);
-
-            console.log(userId)
-
-            return await mongoHelper.findOne(
-                DatabaseConstant.COLLECTIONS.VERIFICATION_TOKENS,
-                {
-                    user_id: id,
-                    phoneNumber,
-                    verificationCode,
-                    expires_at: {$gt: new Date()}
-                }
-            );
-        } catch (err) {
-            console.error("Error getting verification code: ", err);
-            return null;
-        }
-    },
-
     updatePasswordByUserId: async (userId, newPassword) => {
         try {
             await mongoHelper.updateOne(
@@ -183,20 +110,6 @@ const AuthRepo = {
         } catch (err) {
             console.error("Error update password by user id: ", err)
             return false;
-        }
-    },
-
-    updateVerificationStatusByUserId: async (userId) => {
-        try {
-            const id = mongoHelper.extractObjectId(userId);
-
-            await mongoHelper.updateOne(
-                DatabaseConstant.COLLECTIONS.USERS,
-                {_id: id},
-                {$set: {is_verified: true, updated_at: new Date()}}
-            );
-        } catch (err) {
-            console.error("Error update verification status: ", err)
         }
     },
 
@@ -213,27 +126,6 @@ const AuthRepo = {
         }
     },
 
-    findResetTokenByUserIdAndPhoneNumberAndResetCode: async (userId, phoneNumber, resetCode) => {
-        try {
-            const id = mongoHelper.extractObjectId(userId);
-
-            const resetToken = await mongoHelper.findOne(
-                DatabaseConstant.COLLECTIONS.PASSWORD_RESET_TOKENS,
-                {
-                    user_id: id,
-                    phoneNumber,
-                    resetCode,
-                    expires_at: {$gt: new Date()}
-                }
-            );
-
-            return resetToken ? resetCode : null;
-        } catch (err) {
-            console.error("Error find reset code: ", err)
-            return null;
-        }
-    },
-
     findRefreshToken: async (refreshToken) => {
         try {
             const storedToken = await mongoHelper.findOne(
@@ -245,32 +137,6 @@ const AuthRepo = {
         } catch (err) {
             console.error("Error find refresh token: ", err)
             return null;
-        }
-    },
-
-    deleteResetTokenById: async (resetTokenId) => {
-        try {
-            const id = mongoHelper.extractObjectId(resetTokenId);
-
-            await mongoHelper.deleteOne(
-                DatabaseConstant.COLLECTIONS.PASSWORD_RESET_TOKENS,
-                {_id: id}
-            );
-        } catch (err) {
-            console.error("Error delete reset token: ", err)
-        }
-    },
-
-    deleteAllResetTokenByUserId: async (userId) => {
-        try {
-            const id = mongoHelper.extractObjectId(userId);
-
-            await mongoHelper.deleteMany(
-                DatabaseConstant.COLLECTIONS.PASSWORD_RESET_TOKENS,
-                {user_id: id}
-            );
-        } catch (err) {
-            console.error("Error delete all reset token: ", err)
         }
     },
 
@@ -297,20 +163,6 @@ const AuthRepo = {
             console.error("Error deleting refresh token: ", err)
         }
     },
-
-    deleteVerificationTokenById: async (verificationTokenId) => {
-        try {
-            const id = mongoHelper.extractObjectId(verificationTokenId);
-
-            await mongoHelper.deleteOne(
-                DatabaseConstant.COLLECTIONS.VERIFICATION_TOKENS,
-                {_id: verificationTokenId}
-            );
-        } catch (err) {
-            console.error("Error delete verification token: ", err)
-        }
-    },
-
 };
 
 export default AuthRepo;
