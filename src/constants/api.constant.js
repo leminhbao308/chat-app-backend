@@ -53,11 +53,11 @@ const ApiConstant = {
     // User Routes
     USERS: {
         ROOT_PATH: '/users',
-        // GET /search - Tìm kiếm người dùng
+        // GET /search - Tìm kiếm người dùng qua số điện thoại
         SEARCH: {
             path: '/search',
             method: 'get',
-            description: 'Tìm kiếm người dùng qua số điện thoại hoặc ID'
+            description: 'Tìm kiếm người dùng qua số điện thoại'
         },
         // GET /:id - Lấy thông tin chi tiết của người dùng
         DETAIL: {
@@ -65,17 +65,11 @@ const ApiConstant = {
             method: 'get',
             description: 'Lấy thông tin chi tiết của người dùng',
         },
-        // PUT /update-info - Cập nhật thông tin người dùng
+        // POST /update-info - Cập nhật thông tin người dùng
         UPDATE: {
             path: '/update-info',
-            method: 'put',
+            method: 'post',
             description: 'Cập nhật thông tin người dùng',
-        },
-        // PUT /status - Cập nhật trạng thái người dùng
-        UPDATE_STATUS: {
-            path: '/status',
-            method: 'put',
-            description: 'Cập nhật trạng thái người dùng',
         },
         // POST /profile-picture - Cập nhật ảnh đại diện
         PROFILE_PICTURE: {
@@ -83,13 +77,12 @@ const ApiConstant = {
             method: 'post',
             description: 'Cập nhật ảnh đại diện'
         },
-        // PUT /profile-picture/old - Lấy danh sách ảnh đại diện cũ
+        // GET /profile-picture/old - Lấy danh sách ảnh đại diện cũ
         PROFILE_PICTURE_OLD: {
             path: '/profile-picture/old',
             method: 'get',
             description: 'Lấy danh sách ảnh đại diện cũ'
         }
-
     },
 
     // Contacts/Friends Routes
