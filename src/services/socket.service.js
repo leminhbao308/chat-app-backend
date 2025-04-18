@@ -78,20 +78,48 @@ class SocketService {
         });
 
         // Xử lý sự kiện đang gõ
+        // socket.on(SocketConstant.ON_TYPING, (data) => {
+        //     const { conversationId } = data;
+        //     socket.to(`conversation:${conversationId}`).emit('user typing', {
+        //         userId,
+        //         conversationId
+        //     });
+        // });
         socket.on(SocketConstant.ON_TYPING, (data) => {
             const { conversationId } = data;
+        
+            const typingUser = {
+                id: userId,
+                _id: userId,
+                name: socket.user.first_name || socket.user.name || "Unknown"
+            };
+        
             socket.to(`conversation:${conversationId}`).emit('user typing', {
-                userId,
-                conversationId
+                conversationId,
+                user: typingUser
             });
         });
 
         // Xử lý sự kiện dừng gõ
+        // socket.on(SocketConstant.ON_STOP_TYPING, (data) => {
+        //     const { conversationId } = data;
+        //     socket.to(`conversation:${conversationId}`).emit('user stop typing', {
+        //         userId,
+        //         conversationId
+        //     });
+        // });
         socket.on(SocketConstant.ON_STOP_TYPING, (data) => {
             const { conversationId } = data;
+        
+            const typingUser = {
+                id: userId,
+                _id: userId,
+                name: socket.user.first_name || socket.user.name || "Unknown"
+            };
+        
             socket.to(`conversation:${conversationId}`).emit('user stop typing', {
-                userId,
-                conversationId
+                conversationId,
+                user: typingUser
             });
         });
 
