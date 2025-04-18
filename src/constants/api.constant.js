@@ -126,7 +126,7 @@ const ApiConstant = {
         },
         // POST /contacts/:requestId/cancel - Từ chối lời mời kết bạn
         CANCEL: {
-            path: '/:requestId/reject',
+            path: '/:requestId/cancel',
             method: 'post',
             description: 'Từ chối lời mời kết bạn'
         },
