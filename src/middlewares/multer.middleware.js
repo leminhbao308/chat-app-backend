@@ -2,9 +2,9 @@ import multer from 'multer';
 import 'dotenv/config';
 import path from 'path';
 import fs from 'fs';
-import ResponseUtils from '../utils/response.js';
+import ResponseUtils from '../utils/response.util.js';
 import StatusConstant from '../constants/status.constant.js';
-import FileTypeUtil from '../utils/fileTypeUtil.js';
+import FileTypeUtil from '../utils/fileType.util.js';
 
 const UPLOAD_BASE_PATH = process.env.UPLOAD_BASE_PATH || 'uploads';
 const MAX_FILE_SIZE = process.env.MAX_FILE_SIZE || 5 * 1024 * 1024; // 5MB
