@@ -1,0 +1,867 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Công Nghệ Mới - Chat App - API Docs",
+        "description": "API Documentation cho phần Authentication của Chat App",
+        "version": "1.0"
+    },
+    "produces": [
+        "application/json"
+    ],
+    "paths": {
+        "/auth/register": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Đăng ký tài khoản mới",
+                "description": "API đăng ký tài khoản người dùng mới",
+                "operationId": "register",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "user",
+                        "description": "Thông tin người dùng để đăng ký",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "first_name": {
+                                    "type": "string",
+                                    "example": "New",
+                                    "default": "New"
+                                },
+                                "last_name": {
+                                    "type": "string",
+                                    "example": "User",
+                                    "default": "User"
+                                },
+                                "gender": {
+                                    "type": "string",
+                                    "enum": [
+                                        "male",
+                                        "female"
+                                    ],
+                                    "default": "male"
+                                },
+                                "date_of_birth": {
+                                    "type": "string",
+                                    "pattern": "^\\d{2}-\\d{2}-\\d{4}$",
+                                    "example": "01-01-1999",
+                                    "default": "01-01-1999"
+                                },
+                                "password": {
+                                    "type": "string",
+                                    "format": "password",
+                                    "minLength": 8,
+                                    "example": "Example@123",
+                                    "description": "Mật khẩu phải chứa ít nhất một chữ hoa, một chữ thường, một số và một ký tự đặc biệt"
+                                },
+                                "avatar_url": {
+                                    "type": "string",
+                                    "format": "uri"
+                                },
+                                "thumbnail_url": {
+                                    "type": "string",
+                                    "format": "uri"
+                                },
+                                "phone_number": {
+                                    "type": "string",
+                                    "example": "0912345678",
+                                    "description": "Số điện thoại theo định dạng hợp lệ"
+                                }
+                            },
+                            "required": [
+                                "password",
+                                "phone_number"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Đăng ký thành công",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "example": true
+                                },
+                                "describe": {
+                                    "type": "string",
+                                    "example": "Đăng ký thành công"
+                                },
+                                "status_code": {
+                                    "type": "integer",
+                                    "example": 201
+                                },
+                                "content": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dữ liệu không hợp lệ",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "example": false
+                                },
+                                "describe": {
+                                    "type": "string",
+                                    "example": "Request không hợp lệ"
+                                },
+                                "status_code": {
+                                    "type": "integer",
+                                    "example": 400
+                                },
+                                "content": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Số điện thoại đã được đăng ký",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "example": false
+                                },
+                                "describe": {
+                                    "type": "string",
+                                    "example": "Số điện thoại đã được đăng ký"
+                                },
+                                "status_code": {
+                                    "type": "integer",
+                                    "example": 409
+                                },
+                                "content": {
+                                    "type": "null"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Đăng nhập",
+                "description": "API đăng nhập vào hệ thống",
+                "operationId": "login",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "credentials",
+                        "description": "Thông tin đăng nhập",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "phone_number": {
+                                    "type": "string",
+                                    "example": "+84912345678"
+                                },
+                                "password": {
+                                    "type": "string",
+                                    "format": "password",
+                                    "example": "Password123!"
+                                },
+                                "device_id": {
+                                    "type": "string"
+                                },
+                                "device_type": {
+                                    "type": "string",
+                                    "enum": [
+                                        "MOB",
+                                        "WEB"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "phone_number",
+                                "password"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Đăng nhập thành công",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "example": true
+                                },
+                                "describe": {
+                                    "type": "string",
+                                    "example": "Đăng nhập thành công"
+                                },
+                                "status_code": {
+                                    "type": "integer",
+                                    "example": 200
+                                },
+                                "content": {
+                                    "type": "object",
+                                    "properties": {
+                                        "token": {
+                                            "type": "string"
+                                        },
+                                        "refresh_token": {
+                                            "type": "string"
+                                        },
+                                        "user": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dữ liệu không hợp lệ",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "example": false
+                                },
+                                "describe": {
+                                    "type": "string",
+                                    "example": "Request không hợp lệ"
+                                },
+                                "status_code": {
+                                    "type": "integer",
+                                    "example": 400
+                                },
+                                "content": {
+                                    "type": "null"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Đăng nhập thất bại",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "example": false
+                                },
+                                "describe": {
+                                    "type": "string",
+                                    "example": "Thông tin đăng nhập không chính xác"
+                                },
+                                "status_code": {
+                                    "type": "integer",
+                                    "example": 401
+                                },
+                                "content": {
+                                    "type": "null"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Tài khoản bị vô hiệu hóa",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "example": false
+                                },
+                                "describe": {
+                                    "type": "string",
+                                    "example": "Tài khoản đã bị vô hiệu hóa"
+                                },
+                                "status_code": {
+                                    "type": "integer",
+                                    "example": 403
+                                },
+                                "content": {
+                                    "type": "null"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Đăng xuất",
+                "description": "API đăng xuất khỏi hệ thống",
+                "operationId": "logout",
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Đăng xuất thành công",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "example": true
+                                },
+                                "describe": {
+                                    "type": "string",
+                                    "example": "Đăng xuất thành công"
+                                },
+                                "status_code": {
+                                    "type": "integer",
+                                    "example": 200
+                                },
+                                "content": {
+                                    "type": "null"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Không được xác thực",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "example": false
+                                },
+                                "describe": {
+                                    "type": "string",
+                                    "example": "Không được phép truy cập"
+                                },
+                                "status_code": {
+                                    "type": "integer",
+                                    "example": 401
+                                },
+                                "content": {
+                                    "type": "null"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/refresh-token": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Làm mới token xác thực",
+                "description": "API làm mới token xác thực với refresh token",
+                "operationId": "refreshToken",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "refreshToken",
+                        "description": "Refresh Token",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "refresh_token": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "refresh_token"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Làm mới token thành công",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "example": true
+                                },
+                                "describe": {
+                                    "type": "string",
+                                    "example": "Làm mới token thành công"
+                                },
+                                "status_code": {
+                                    "type": "integer",
+                                    "example": 200
+                                },
+                                "content": {
+                                    "type": "object",
+                                    "properties": {
+                                        "token": {
+                                            "type": "string"
+                                        },
+                                        "refresh_token": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Refresh token không hợp lệ hoặc hết hạn",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "example": false
+                                },
+                                "describe": {
+                                    "type": "string",
+                                    "example": "Refresh Token không hợp lệ"
+                                },
+                                "status_code": {
+                                    "type": "integer",
+                                    "example": 401
+                                },
+                                "content": {
+                                    "type": "null"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Lỗi server",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "example": false
+                                },
+                                "describe": {
+                                    "type": "string",
+                                    "example": "Làm mới token thất bại"
+                                },
+                                "status_code": {
+                                    "type": "integer",
+                                    "example": 500
+                                },
+                                "content": {
+                                    "type": "null"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/reset-password": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Đặt lại mật khẩu",
+                "description": "API đặt lại mật khẩu người dùng",
+                "operationId": "resetPassword",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "resetPassword",
+                        "description": "Thông tin đặt lại mật khẩu",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "phone_number": {
+                                    "type": "string",
+                                    "example": "+84912345678"
+                                },
+                                "new_password": {
+                                    "type": "string",
+                                    "format": "password",
+                                    "example": "NewPassword123!",
+                                    "description": "Mật khẩu phải chứa ít nhất một chữ hoa, một chữ thường, một số và một ký tự đặc biệt"
+                                }
+                            },
+                            "required": [
+                                "phone_number",
+                                "new_password"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Đặt lại mật khẩu thành công",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "example": true
+                                },
+                                "describe": {
+                                    "type": "string",
+                                    "example": "Đặt lại mật khẩu thành công"
+                                },
+                                "status_code": {
+                                    "type": "integer",
+                                    "example": 200
+                                },
+                                "content": {
+                                    "type": "null"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dữ liệu không hợp lệ",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "example": false
+                                },
+                                "describe": {
+                                    "type": "string",
+                                    "example": "Đặt lại mật khẩu thất bại"
+                                },
+                                "status_code": {
+                                    "type": "integer",
+                                    "example": 400
+                                },
+                                "content": {
+                                    "type": "null"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Lỗi server",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "example": false
+                                },
+                                "describe": {
+                                    "type": "string",
+                                    "example": "Đặt lại mật khẩu thất bại"
+                                },
+                                "status_code": {
+                                    "type": "integer",
+                                    "example": 500
+                                },
+                                "content": {
+                                    "type": "null"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/change-password": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Thay đổi mật khẩu",
+                "description": "API thay đổi mật khẩu của người dùng hiện tại",
+                "operationId": "changePassword",
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "changePassword",
+                        "description": "Thông tin thay đổi mật khẩu",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "current_password": {
+                                    "type": "string",
+                                    "format": "password",
+                                    "example": "CurrentPassword123!"
+                                },
+                                "new_password": {
+                                    "type": "string",
+                                    "format": "password",
+                                    "example": "NewPassword123!",
+                                    "description": "Mật khẩu phải chứa ít nhất một chữ hoa, một chữ thường, một số và một ký tự đặc biệt"
+                                }
+                            },
+                            "required": [
+                                "current_password",
+                                "new_password"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Thay đổi mật khẩu thành công",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "example": true
+                                },
+                                "describe": {
+                                    "type": "string",
+                                    "example": "Thay đổi mật khẩu thành công"
+                                },
+                                "status_code": {
+                                    "type": "integer",
+                                    "example": 200
+                                },
+                                "content": {
+                                    "type": "null"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Dữ liệu không hợp lệ",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "example": false
+                                },
+                                "describe": {
+                                    "type": "string",
+                                    "example": "Thông tin đăng nhập không chính xác"
+                                },
+                                "status_code": {
+                                    "type": "integer",
+                                    "example": 400
+                                },
+                                "content": {
+                                    "type": "null"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Lỗi server",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "example": false
+                                },
+                                "describe": {
+                                    "type": "string",
+                                    "example": "Thay đổi mật khẩu thất bại"
+                                },
+                                "status_code": {
+                                    "type": "integer",
+                                    "example": 500
+                                },
+                                "content": {
+                                    "type": "null"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/me": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Lấy thông tin người dùng hiện tại",
+                "description": "API lấy thông tin của người dùng đã đăng nhập",
+                "operationId": "getUserInfo",
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lấy thông tin thành công",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "example": true
+                                },
+                                "describe": {
+                                    "type": "string",
+                                    "example": "Lấy thông tin người dùng thành công"
+                                },
+                                "status_code": {
+                                    "type": "integer",
+                                    "example": 200
+                                },
+                                "content": {
+                                    "type": "object",
+                                    "properties": {
+                                        "_id": {
+                                            "type": "string"
+                                        },
+                                        "first_name": {
+                                            "type": "string"
+                                        },
+                                        "last_name": {
+                                            "type": "string"
+                                        },
+                                        "gender": {
+                                            "type": "string",
+                                            "enum": [
+                                                "male",
+                                                "female"
+                                            ]
+                                        },
+                                        "date_of_birth": {
+                                            "type": "string"
+                                        },
+                                        "phone_number": {
+                                            "type": "string"
+                                        },
+                                        "avatar_url": {
+                                            "type": "string"
+                                        },
+                                        "thumbnail_url": {
+                                            "type": "string"
+                                        },
+                                        "is_active": {
+                                            "type": "boolean"
+                                        },
+                                        "created_at": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        },
+                                        "updated_at": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        },
+                                        "online_status": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Không được xác thực",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "example": false
+                                },
+                                "describe": {
+                                    "type": "string",
+                                    "example": "Không được phép truy cập"
+                                },
+                                "status_code": {
+                                    "type": "integer",
+                                    "example": 401
+                                },
+                                "content": {
+                                    "type": "null"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Không tìm thấy người dùng",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "example": false
+                                },
+                                "describe": {
+                                    "type": "string",
+                                    "example": "Không tìm thấy người dùng"
+                                },
+                                "status_code": {
+                                    "type": "integer",
+                                    "example": 404
+                                },
+                                "content": {
+                                    "type": "null"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "Bearer": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header",
+            "description": "JWT Authorization header sử dụng Bearer scheme. Ví dụ: \"Authorization: Bearer {token}\""
+        }
+    }
+}

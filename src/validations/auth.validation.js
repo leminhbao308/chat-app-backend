@@ -21,7 +21,7 @@ const authValidation = {
             avatar_url: Joi.string().uri().optional().default(S3Constant.DEFAULT_USER_AVATAR_URL),
             thumbnail_url: Joi.string().uri().optional().default(S3Constant.DEFAULT_THUMBNAIL_URL),
             phone_number: Joi.string().pattern(ValidationConstant.REGEX.PHONE).required()
-                .messages({'string.pattern.base': 'Phone number must be a valid international format'})
+                .messages({'string.pattern.base': 'Phone number must be a valid format'})
         })
     },
 
@@ -31,8 +31,8 @@ const authValidation = {
             password: Joi.string().required(),
             device_id: Joi.string().optional(),
             device_type: Joi.string().valid(
-                ValidationConstant.DEVICE_TYPE.MOB,
-                ValidationConstant.DEVICE_TYPE.WEB
+                ValidationConstant.DEVICE_TYPE.MOB, // mobile
+                ValidationConstant.DEVICE_TYPE.WEB // web
             ).optional()
         })
     },
@@ -40,21 +40,6 @@ const authValidation = {
     refreshToken: {
         body: Joi.object({
             refresh_token: Joi.string().required()
-        })
-    },
-
-    resetPasswordRequest: {
-        body: Joi.object({
-            phone_number: Joi.string().required()
-        })
-    },
-
-    verifyPasswordResetCode: {
-        body: Joi.object({
-            phone_number: Joi.string().required(),
-            reset_code: Joi.string().length(6)
-                .pattern(ValidationConstant.REGEX.SIX_DIGIT_CODE).required()
-                .messages({'string.pattern.base': 'Reset code must be 6 digits'})
         })
     },
 
@@ -79,29 +64,6 @@ const authValidation = {
                 })
         })
     },
-
-    updateProfile: {
-        body: Joi.object({
-            first_name: Joi.string().optional(),
-            last_name: Joi.string().optional(),
-            gender: Joi.string().optional().valid(ValidationConstant.GENDER.M, ValidationConstant.GENDER.F),
-            date_of_birth: Joi.string().pattern(ValidationConstant.REGEX.DATE).optional()
-                .messages({'string.pattern.base': 'Date of birth must be in DD-MM-YYYY format'}),
-            avatar_url: Joi.string().uri().optional(),
-            thumbnail_url: Joi.string().uri().optional(),
-            phone_number: Joi.string().pattern(ValidationConstant.REGEX.PHONE).optional()
-                .messages({'string.pattern.base': 'Phone number must be a valid international format'})
-        })
-    },
-
-    verifyPhoneNumber: {
-        body: Joi.object({
-            phone_number: Joi.string().required(),
-            verification_code: Joi.string().length(6)
-                .pattern(ValidationConstant.REGEX.SIX_DIGIT_CODE).required()
-                .messages({'string.pattern.base': 'Verification code must be 6 digits'})
-        })
-    }
 };
 
 export default authValidation;

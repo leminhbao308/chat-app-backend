@@ -1,6 +1,6 @@
-import mongoHelper from "../helper/MongoHelper.js";
+import mongoHelper from "../helper/mongo.helper.js";
 import StatusConstant from "../constants/status.constant.js";
-import ResponseUtils from '../utils/response.js';
+import ResponseUtils from '../utils/response.util.js';
 
 const MongoMiddleware = async (req, res, next) => {
   // Check MongoDB connection with early return

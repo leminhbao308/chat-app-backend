@@ -23,7 +23,10 @@ const DatabaseConstant = {
         REFRESH_TOKENS: 'refresh_tokens',
         VERIFICATION_TOKENS: 'verification_tokens',
         PASSWORD_RESET_TOKENS: 'password_reset_tokens',
-        USER_AVATARS: 'user_avatars'
+        USER_AVATARS: 'user_avatars',
+        MESSAGES: 'messages',
+        CONVERSATIONS: 'conversations',
+        CONTACTS: 'contacts'
     },
 
     // Index names
