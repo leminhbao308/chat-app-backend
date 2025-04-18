@@ -1,4 +1,4 @@
-import mongoHelper from "../helper/MongoHelper.js";
+import mongoHelper from "../helper/mongo.helper.js";
 import ContactConstant from "../constants/contact.constant.js";
 import DatabaseConstant from "../constants/database.constant.js";
 
@@ -9,8 +9,13 @@ const ContactRepo = {
             const existingRequest = await mongoHelper.findOne(
                 DatabaseConstant.COLLECTIONS.CONTACTS,
                 {
-                    user_id: mongoHelper.extractObjectId(contactId),
-                    contact_id: mongoHelper.extractObjectId(userId)
+                    'members': {
+                        $all: [
+                            mongoHelper.extractObjectId(userId),
+                            mongoHelper.extractObjectId(contactId)
+                        ],
+                        $size: 2
+                    }
                 }
             );
 
@@ -18,18 +23,19 @@ const ContactRepo = {
                 // Nếu đã có yêu cầu từ người kia, chấp nhận luôn
                 if (existingRequest.status === ContactConstant.STATUS.PENDING) {
                     await this.acceptContactRequest(contactId, userId);
-                    return { isAccepted: true };
+                    return {isAccepted: true};
                 }
-                return { isAccepted: false, existingRequest };
+                return {isAccepted: false, existingRequest};
             }
 
             // Nếu chưa có yêu cầu nào, tạo mới
             const newContact = {
-                user_id: mongoHelper.extractObjectId(userId),
-                contact_id: mongoHelper.extractObjectId(contactId),
+                members: [
+                    mongoHelper.extractObjectId(userId),
+                    mongoHelper.extractObjectId(contactId)
+                ],
+                requester: mongoHelper.extractObjectId(userId),
                 status: ContactConstant.STATUS.PENDING,
-                created_at: new Date(),
-                updated_at: new Date()
             };
 
             const result = await mongoHelper.insertOne(
@@ -37,66 +43,25 @@ const ContactRepo = {
                 newContact
             );
 
-            return { isAccepted: false, newRequest: result };
+            return {isAccepted: false, newRequest: result};
         } catch (error) {
             console.error("Error creating contact request:", error);
             throw error;
         }
     },
 
-    async acceptContactRequest(userId, contactId) {
+    async acceptContactRequest(requestId) {
         try {
             // Cập nhật trạng thái request thành 'accepted'
             await mongoHelper.updateOne(
                 DatabaseConstant.COLLECTIONS.CONTACTS,
-                {
-                    user_id: mongoHelper.extractObjectId(contactId),
-                    contact_id: mongoHelper.extractObjectId(userId),
-                    status: ContactConstant.STATUS.PENDING
-                },
+                {_id: mongoHelper.extractObjectId(requestId)},
                 {
                     $set: {
-                        status: ContactConstant.STATUS.ACCEPTED,
-                        updated_at: new Date()
+                        status: ContactConstant.STATUS.ACCEPTED
                     }
                 }
             );
-
-            // Tạo mối quan hệ hai chiều bằng cách thêm một record ngược lại
-            const existingReverse = await mongoHelper.findOne(
-                DatabaseConstant.COLLECTIONS.CONTACTS,
-                {
-                    user_id: mongoHelper.extractObjectId(userId),
-                    contact_id: mongoHelper.extractObjectId(contactId)
-                }
-            );
-
-            if (!existingReverse) {
-                await mongoHelper.insertOne(
-                    DatabaseConstant.COLLECTIONS.CONTACTS,
-                    {
-                        user_id: mongoHelper.extractObjectId(userId),
-                        contact_id: mongoHelper.extractObjectId(contactId),
-                        status: ContactConstant.STATUS.ACCEPTED,
-                        created_at: new Date(),
-                        updated_at: new Date()
-                    }
-                );
-            } else {
-                await mongoHelper.updateOne(
-                    DatabaseConstant.COLLECTIONS.CONTACTS,
-                    {
-                        user_id: mongoHelper.extractObjectId(userId),
-                        contact_id: mongoHelper.extractObjectId(contactId)
-                    },
-                    {
-                        $set: {
-                            status: ContactConstant.STATUS.ACCEPTED,
-                            updated_at: new Date()
-                        }
-                    }
-                );
-            }
 
             return true;
         } catch (error) {
@@ -105,129 +70,188 @@ const ContactRepo = {
         }
     },
 
+    async rejectContactRequest(requestId) {
+        try {
+            // Xóa request
+            await mongoHelper.deleteOne(
+                DatabaseConstant.COLLECTIONS.CONTACTS,
+                {_id: mongoHelper.extractObjectId(requestId)}
+            );
+
+            return true;
+        } catch (error) {
+            console.error("Error rejecting contact request:", error);
+            throw error;
+        }
+    },
+
+    async cancelContactRequest(requestId) {
+        try {
+            await mongoHelper.deleteOne(
+                DatabaseConstant.COLLECTIONS.CONTACTS,
+                {_id: mongoHelper.extractObjectId(requestId)}
+            );
+        } catch (error) {
+            console.error("Error canceling contact request:", error);
+            throw error;
+        }
+    },
+
     async getContactList(userId) {
         try {
-            // Lấy danh sách contact đã được chấp nhận
-            return await mongoHelper.aggregate(
+            const objectId = mongoHelper.extractObjectId(userId);
+
+            // Find all accepted contacts where the user is a member
+            const contacts = await mongoHelper.find(
                 DatabaseConstant.COLLECTIONS.CONTACTS,
-                [
-                    {
-                        $match: {
-                            user_id: mongoHelper.extractObjectId(userId),
-                            status: ContactConstant.STATUS.ACCEPTED
-                        }
-                    },
-                    {
-                        $lookup: {
-                            from: DatabaseConstant.COLLECTIONS.USERS,
-                            localField: 'contact_id',
-                            foreignField: '_id',
-                            as: 'contact_details'
-                        }
-                    },
-                    {
-                        $unwind: '$contact_details'
-                    },
-                    {
-                        $project: {
-                            _id: 1,
-                            contact_id: 1,
-                            status: 1,
-                            created_at: 1,
-                            updated_at: 1,
-                            'contact_details.username': 1,
-                            'contact_details.avatar_url': 1,
-                            'contact_details.phone_number': 1
-                        }
-                    }
-                ]
+                {
+                    members: objectId,
+                    status: "accepted"
+                }
             );
+
+            // Populate contact details for each contact
+            const populatedContacts = [];
+            for (const contact of contacts) {
+                // Find the contact's ID (the other member in the array)
+                const contactId = contact.members.find(member =>
+                    !member.equals(objectId)
+                );
+
+                // Get contact user details
+                const contactDetails = await mongoHelper.findOne(
+                    DatabaseConstant.COLLECTIONS.USERS,
+                    { _id: contactId },
+                    {
+                        username: 1,
+                        avatar_url: 1,
+                        phone_number: 1
+                    }
+                );
+
+                populatedContacts.push({
+                    _id: contact._id,
+                    contact_id: contactId,
+                    status: contact.status,
+                    requester: contact.requester,
+                    created_at: contact.created_at,
+                    updated_at: contact.updated_at,
+                    contact_details: contactDetails
+                });
+            }
+
+            return populatedContacts;
         } catch (error) {
             console.error("Error getting contact list:", error);
             throw error;
         }
     },
 
-    async getPendingRequests(userId) {
+    async getPendingRequest(requestSender, requestReceiver) {
         try {
-            // Lấy danh sách yêu cầu kết bạn đang chờ duyệt
-            return await mongoHelper.aggregate(
+            return await mongoHelper.findOne(
                 DatabaseConstant.COLLECTIONS.CONTACTS,
-                [
-                    {
-                        $match: {
-                            contact_id: mongoHelper.extractObjectId(userId),
-                            status: ContactConstant.STATUS.PENDING
-                        }
+                {
+                    'members': {
+                        $all: [
+                            mongoHelper.extractObjectId(requestSender),
+                            mongoHelper.extractObjectId(requestReceiver)
+                        ],
+                        $size: 2
                     },
-                    {
-                        $lookup: {
-                            from: DatabaseConstant.COLLECTIONS.USERS,
-                            localField: 'user_id',
-                            foreignField: '_id',
-                            as: 'requester_details'
-                        }
-                    },
-                    {
-                        $unwind: '$requester_details'
-                    },
-                    {
-                        $project: {
-                            _id: 1,
-                            user_id: 1,
-                            status: 1,
-                            created_at: 1,
-                            updated_at: 1,
-                            'requester_details.username': 1,
-                            'requester_details.avatar_url': 1,
-                            'requester_details.phone_number': 1
-                        }
-                    }
-                ]
+                    requester: mongoHelper.extractObjectId(requestSender),
+                    status: ContactConstant.STATUS.PENDING
+                }
             );
         } catch (error) {
-            console.error("Error getting pending requests:", error);
+            console.error("Error getting pending request: ", error);
+            throw error;
+        }
+    },
+
+    async getPendingRequests(userId) {
+        try {
+            const objectId = mongoHelper.extractObjectId(userId);
+
+            // Get all pending requests where the user is the receiver
+            const pendingRequests = await mongoHelper.find(
+                DatabaseConstant.COLLECTIONS.CONTACTS,
+                {
+                    members: objectId,
+                    requester: { $ne: objectId }, // User is not the requester
+                    status: ContactConstant.STATUS.PENDING
+                }
+            );
+
+            // Get requester details for each request
+            const populatedRequests = [];
+            for (const request of pendingRequests) {
+                const requesterDetails = await mongoHelper.findOne(
+                    DatabaseConstant.COLLECTIONS.USERS,
+                    { _id: request.requester },
+                    {
+                        username: 1,
+                        avatar_url: 1,
+                        phone_number: 1
+                    }
+                );
+
+                populatedRequests.push({
+                    ...request,
+                    requester_details: requesterDetails
+                });
+            }
+
+            return populatedRequests;
+        } catch (error) {
+            console.error("Error getting all pending requests:", error);
             throw error;
         }
     },
 
     async getSentRequests(userId) {
         try {
-            // Lấy danh sách yêu cầu kết bạn đã gửi
-            return await mongoHelper.aggregate(
+            const objectId = mongoHelper.extractObjectId(userId);
+
+            // Find all pending contacts where the user is the requester
+            const sentRequests = await mongoHelper.find(
                 DatabaseConstant.COLLECTIONS.CONTACTS,
-                [
-                    {
-                        $match: {
-                            user_id: mongoHelper.extractObjectId(userId),
-                            status: ContactConstant.STATUS.PENDING
-                        }
-                    },
-                    {
-                        $lookup: {
-                            from: DatabaseConstant.COLLECTIONS.USERS,
-                            localField: 'contact_id',
-                            foreignField: '_id',
-                            as: 'receiver_details'
-                        }
-                    },
-                    {
-                        $unwind: '$receiver_details'
-                    },
-                    {
-                        $project: {
-                            _id: 1,
-                            contact_id: 1,
-                            status: 1,
-                            created_at: 1,
-                            updated_at: 1,
-                            'receiver_details.username': 1,
-                            'receiver_details.avatar_url': 1,
-                            'receiver_details.phone_number': 1
-                        }
-                    }
-                ]
+                {
+                    requester: objectId,
+                    status: ContactConstant.STATUS.PENDING
+                }
             );
+
+            // Populate receiver details for each request
+            const populatedRequests = [];
+            for (const request of sentRequests) {
+                // Find the receiver's ID (the member that isn't the requester)
+                const receiverId = request.members.find(member =>
+                    !member.equals(objectId)
+                );
+
+                // Get receiver user details
+                const receiverDetails = await mongoHelper.findOne(
+                    DatabaseConstant.COLLECTIONS.USERS,
+                    { _id: receiverId },
+                    {
+                        username: 1,
+                        avatar_url: 1,
+                        phone_number: 1
+                    }
+                );
+
+                populatedRequests.push({
+                    _id: request._id,
+                    contact_id: receiverId,
+                    status: request.status,
+                    created_at: request.created_at,
+                    updated_at: request.updated_at,
+                    receiver_details: receiverDetails
+                });
+            }
+
+            return populatedRequests;
         } catch (error) {
             console.error("Error getting sent requests:", error);
             throw error;
@@ -297,24 +321,6 @@ const ContactRepo = {
             throw error;
         }
     },
-
-    async isContact(userId, contactId) {
-        try {
-            const contact = await mongoHelper.findOne(
-                DatabaseConstant.COLLECTIONS.CONTACTS,
-                {
-                    user_id: mongoHelper.extractObjectId(userId),
-                    contact_id: mongoHelper.extractObjectId(contactId),
-                    status: ContactConstant.STATUS.ACCEPTED
-                }
-            );
-
-            return !!contact;
-        } catch (error) {
-            console.error("Error checking contact status:", error);
-            throw error;
-        }
-    }
 };
 
 export default ContactRepo;

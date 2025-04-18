@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import ResponseUtils from '../utils/response.js';
+import ResponseUtils from '../utils/response.util.js';
 import StatusConstant from '../constants/status.constant.js';
 
 /**

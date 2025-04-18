@@ -1,3 +1,5 @@
+import 'dotenv/config';
+
 const S3Constant = {
     // AWS Region
     REGION: process.env.AWS_REGION || 'ap-southeast-1',

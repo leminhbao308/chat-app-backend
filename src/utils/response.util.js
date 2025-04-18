@@ -66,8 +66,8 @@ const ResponseUtils = {
      */
     listResponse(describe, items, total) {
         return this.successResponse(describe, {
+            total,
             items,
-            total
         });
     },
 

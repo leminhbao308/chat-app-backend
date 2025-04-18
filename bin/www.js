@@ -32,9 +32,10 @@ class Server {
         // Use the existing HTTP server from App that already has Socket.IO attached
         this.app.listen(this.port);
 
-        console.log(`✅ Server started successfully`);
-        console.log(`🌐 Listening on http://localhost:${this.port}`);
-        console.log(`📍 Environment: ${NODE_ENV}`);
+        console.log(`- Server started successfully`);
+        console.log(`- Listening on http://localhost:${this.port}`);
+        console.log(`- Documents on http://localhost:${this.port}/api-docs`);
+        console.log(`- Environment: ${NODE_ENV}`);
     }
 }
 

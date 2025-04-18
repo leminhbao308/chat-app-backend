@@ -11,7 +11,7 @@ import NotFoundMiddleware from "./middlewares/notFound.middleware.js";
 import ErrorMiddleware from "./middlewares/error.middleware.js";
 import ApiConstant from "./constants/api.constant.js";
 import MongoMiddleware from "./middlewares/mongo.middleware.js";
-import mongoHelper from "./helper/MongoHelper.js";
+import mongoHelper from "./helper/mongo.helper.js";
 import S3Middleware from "./middlewares/s3.middleware.js";
 import s3Helper from "./helper/s3.helper.js";
 import * as http from "node:http";
@@ -21,6 +21,7 @@ import MessageRouter from "./routes/messages.route.js";
 import SocketService from "./services/socket.service.js";
 import SocketRouter from "./routes/socket.route.js";
 import ContactRouter from "./routes/contacts.route.js";
+import SwaggerRouter from "./routes/swagger.route.js";
 
 class App {
     constructor() {
@@ -47,7 +48,7 @@ class App {
         // Compression for performance
         this.app.use(compression());
 
-        const allowedOrigins = [process.env.CORS_ORIGIN, 'http://localhost:5000'];
+        const allowedOrigins = [process.env.CORS_ORIGIN, 'http://localhost:5000', 'http://localhost:3000'];
 
         this.app.use(cors({
             origin: (origin, callback) => {
@@ -85,6 +86,9 @@ class App {
         this.app.use(ApiConstant.MESSAGES.ROOT_PATH, MessageRouter);
         this.app.use(ApiConstant.WEBSOCKET.ROOT_PATH, SocketRouter);
         this.app.use(ApiConstant.CONTACTS.ROOT_PATH, ContactRouter);
+
+        // Add Swagger Documents
+        this.app.use("/api-docs", SwaggerRouter);
     }
 
     handleErrors() {
@@ -104,19 +108,19 @@ class App {
     initializeSocketService() {
         // Initialize the socket service with io instance
         this.socketService = new SocketService(this.getIO());
-        console.log("Socket.IO service initialized");
+        console.log("- Socket.IO service initialized");
     }
 
     async connectDatabase() {
         try {
             await mongoHelper.connect();
-            console.log("MongoDB connected successfully");
+            console.log("- MongoDB connected successfully");
         } catch (error) {
-            console.error("MongoDB connection failed:", error);
+            console.error("- MongoDB connection failed:\n", error);
 
             // Critical error handling in development
             if (process.env.NODE_ENV === 'development') {
-                console.error("Exiting application due to database connection failure");
+                console.error("- Exiting application due to database connection failure");
                 process.exit(1);
             }
         }
@@ -125,11 +129,11 @@ class App {
     async connectStorage() {
         try {
             await s3Helper.connect();
-            console.log("AWS S3 connected successfully");
+            console.log("- AWS S3 connected successfully");
         } catch (error) {
-            console.error("AWS S3 connection failed:", error);
+            console.error("- AWS S3 connection failed: \n", error);
 
-            console.warn("Exiting application due to storage connection failure");
+            console.warn("- Exiting application due to storage connection failure");
             process.exit(1);
         }
     }
@@ -140,11 +144,11 @@ class App {
         signals.forEach(signal => {
             process.on(signal, async () => {
                 try {
-                    console.log(`Received ${signal}. Starting graceful shutdown...`);
+                    console.log(`- Received ${signal}. Starting graceful shutdown...`);
 
                     // Close database connection
                     await mongoHelper.close();
-                    console.log('MongoDB connection closed');
+                    console.log('- MongoDB connection closed');
 
                     // Close server if initialized
                     if (this.server) {
@@ -156,7 +160,7 @@ class App {
                         process.exit(0);
                     }
                 } catch (error) {
-                    console.error('Graceful shutdown error:', error);
+                    console.error('- Graceful shutdown error:', error);
                     process.exit(1);
                 }
             });
@@ -165,7 +169,6 @@ class App {
 
     listen(port) {
         this.httpServer.listen(port, () => {
-            console.log(`Server running on port ${port}`);
         });
         return this.httpServer;
     }

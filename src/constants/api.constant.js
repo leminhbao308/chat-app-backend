@@ -31,46 +31,16 @@ const ApiConstant = {
             method: 'post',
             description: 'Làm mới token xác thực'
         },
-        // POST /verify-phone - Xác thực số điện thoại
-        VERIFY: {
-            path: '/verify-phone',
-            method: 'post',
-            description: 'Xác thực số điện thoại'
-        },
         // POST /change-password - Yêu cầu thay đổi mật khẩu
         CHANGE_PASSWORD: {
             path: '/change-password',
             method: 'post',
             description: 'Yêu cầu thay đổi mật khẩu'
         },
-        // ✅ Gửi mã OTP yêu cầu đặt lại mật khẩu
-        // FORGOT_PASSWORD: {
-        //     path: '/forgot-password',
-        //     method: 'post',
-        //     description: 'Yêu cầu đặt lại mật khẩu'
-        // },
-        FORGOT_PASSWORD: {
-            path: '/reset-password/request',
-            method: 'post',
-            description: 'Yêu cầu gửi mã OTP đặt lại mật khẩu'
-        },
-
-        // ✅ Xác thực mã OTP và đặt lại mật khẩu
-        // RESET_PASSWORD: {
-        //     path: '/reset-password',
-        //     method: 'post',
-        //     description: 'Đặt lại mật khẩu'
-        // },
         RESET_PASSWORD: {
             path: '/reset-password',
-            method: 'put',
-            description: 'Đặt lại mật khẩu'
-        },
-        // POST /verify-reset-code
-        VERIFY_RESET_CODE: {
-            path: '/verify-reset-code',
             method: 'post',
-            description: 'Mã đặt lại mật khẩu'
+            description: 'Đặt lại mật khẩu'
         },
         // GET /me - Lấy thông tin người dùng hiện tại
         ME: {
@@ -83,11 +53,11 @@ const ApiConstant = {
     // User Routes
     USERS: {
         ROOT_PATH: '/users',
-        // GET /search - Tìm kiếm người dùng
+        // GET /search - Tìm kiếm người dùng qua số điện thoại
         SEARCH: {
             path: '/search',
             method: 'get',
-            description: 'Tìm kiếm người dùng qua số điện thoại hoặc ID'
+            description: 'Tìm kiếm người dùng qua số điện thoại'
         },
         // GET /:id - Lấy thông tin chi tiết của người dùng
         DETAIL: {
@@ -95,17 +65,11 @@ const ApiConstant = {
             method: 'get',
             description: 'Lấy thông tin chi tiết của người dùng',
         },
-        // PUT /update-info - Cập nhật thông tin người dùng
+        // POST /update-info - Cập nhật thông tin người dùng
         UPDATE: {
             path: '/update-info',
-            method: 'put',
+            method: 'post',
             description: 'Cập nhật thông tin người dùng',
-        },
-        // PUT /status - Cập nhật trạng thái người dùng
-        UPDATE_STATUS: {
-            path: '/status',
-            method: 'put',
-            description: 'Cập nhật trạng thái người dùng',
         },
         // POST /profile-picture - Cập nhật ảnh đại diện
         PROFILE_PICTURE: {
@@ -113,13 +77,12 @@ const ApiConstant = {
             method: 'post',
             description: 'Cập nhật ảnh đại diện'
         },
-        // PUT /profile-picture/old - Lấy danh sách ảnh đại diện cũ
+        // GET /profile-picture/old - Lấy danh sách ảnh đại diện cũ
         PROFILE_PICTURE_OLD: {
             path: '/profile-picture/old',
             method: 'get',
             description: 'Lấy danh sách ảnh đại diện cũ'
         }
-
     },
 
     // Contacts/Friends Routes
@@ -157,6 +120,12 @@ const ApiConstant = {
         },
         // POST /contacts/:requestId/reject - Từ chối lời mời kết bạn
         REJECT: {
+            path: '/:requestId/reject',
+            method: 'post',
+            description: 'Từ chối lời mời kết bạn'
+        },
+        // POST /contacts/:requestId/cancel - Từ chối lời mời kết bạn
+        CANCEL: {
             path: '/:requestId/reject',
             method: 'post',
             description: 'Từ chối lời mời kết bạn'
