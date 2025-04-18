@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import mongoHelper from '../helper/mongo.helper.js';
 import DatabaseConstant from '../constants/database.constant.js';
 import SocketConstant from "../constants/socket.constant.js";
+import repos from "../repos/index.js";
 
 class SocketService {
     constructor(io) {
@@ -72,6 +73,16 @@ class SocketService {
             await this.handleNewMessage(socket, messageData, userId);
         });
 
+        // Xử lý sự kiện xóa tin nhắn
+        socket.on(SocketConstant.ON_MESSAGE_DELETE, async (data) => {
+            await this.handleMessageDelete(socket, data, userId);
+        });
+
+        // Xử lý sự kiện thu hồi tin nhắn
+        socket.on(SocketConstant.ON_MESSAGE_REVOKE, async (data) => {
+            await this.handleMessageRevoke(socket, data, userId);
+        });
+
         // Xử lý sự kiện đánh dấu tin nhắn đã đọc
         socket.on(SocketConstant.ON_MARK_MESSAGES_READ, async (data) => {
             await this.handleMarkMessagesRead(socket, data, userId);
@@ -86,14 +97,14 @@ class SocketService {
         //     });
         // });
         socket.on(SocketConstant.ON_TYPING, (data) => {
-            const { conversationId } = data;
-        
+            const {conversationId} = data;
+
             const typingUser = {
                 id: userId,
                 _id: userId,
                 name: socket.user.first_name || socket.user.name || "Unknown"
             };
-        
+
             socket.to(`conversation:${conversationId}`).emit('user typing', {
                 conversationId,
                 user: typingUser
@@ -109,14 +120,14 @@ class SocketService {
         //     });
         // });
         socket.on(SocketConstant.ON_STOP_TYPING, (data) => {
-            const { conversationId } = data;
-        
+            const {conversationId} = data;
+
             const typingUser = {
                 id: userId,
                 _id: userId,
                 name: socket.user.first_name || socket.user.name || "Unknown"
             };
-        
+
             socket.to(`conversation:${conversationId}`).emit('user stop typing', {
                 conversationId,
                 user: typingUser
@@ -134,7 +145,7 @@ class SocketService {
 
         // Thêm các event handler liên quan đến contact
         socket.on('contact request sent', (data) => {
-            const { receiverId } = data;
+            const {receiverId} = data;
             // Gửi thông báo cho người nhận nếu họ đang online
             if (this.connectedUsers.has(receiverId)) {
                 const receiverSockets = this.connectedUsers.get(receiverId);
@@ -148,7 +159,7 @@ class SocketService {
         });
 
         socket.on('contact request accepted', (data) => {
-            const { senderId } = data;
+            const {senderId} = data;
             // Gửi thông báo cho người gửi yêu cầu nếu họ đang online
             if (this.connectedUsers.has(senderId)) {
                 const senderSockets = this.connectedUsers.get(senderId);
@@ -181,47 +192,42 @@ class SocketService {
 
     async handleNewMessage(socket, messageData, senderId) {
         try {
-            const { conversationId, content } = messageData;
-
-            // Kiểm tra conversation có tồn tại không
-            const conversation = await mongoHelper.findOne(
-                DatabaseConstant.COLLECTIONS.CONVERSATIONS,
-                { _id: mongoHelper.extractObjectId(conversationId) }
-            );
-
-            if (!conversation) {
-                socket.emit('message error', { error: 'Conversation not found' });
-                return;
-            }
+            const {conversationId, content, reply_to, files} = messageData;
 
             // Kiểm tra người gửi có thuộc conversation không
-            const isParticipant = conversation.participants.some(
-                p => p.toString() === senderId.toString()
-            );
+            const isParticipant = await repos.conversation.isUserParticipateInConversation(conversationId, senderId.toString());
 
             if (!isParticipant) {
-                socket.emit('message error', { error: 'You are not a participant of this conversation' });
+                socket.emit('message error', {error: 'You are not a participant of this conversation'});
                 return;
             }
 
             // Tạo message mới
             const newMessage = {
+                _id: mongoHelper.generateId(),
                 sender_id: mongoHelper.extractObjectId(senderId),
+                reply_to: reply_to ? mongoHelper.extractObjectId(reply_to) : null,
                 content,
+                files: files || [],
+                reactions: [],
+                metadata: {},
+                deleted_by: [],
+                is_revoked: false,
                 send_timestamp: new Date(),
-                read_by: [{ user_id: mongoHelper.extractObjectId(senderId), read_at: new Date() }]
+                read_by: [{user_id: mongoHelper.extractObjectId(senderId), read_at: new Date()}]
             };
 
             // Cập nhật conversation với tin nhắn mới
             await mongoHelper.updateOne(
                 DatabaseConstant.COLLECTIONS.CONVERSATIONS,
-                { _id: mongoHelper.extractObjectId(conversationId) },
+                {_id: mongoHelper.extractObjectId(conversationId)},
                 {
-                    $push: { messages: newMessage },
+                    $push: {messages: newMessage},
                     $set: {
-                        updated_at: new Date(),
                         last_message: {
-                            content,
+                            content: files && files.length > 0
+                                ? `[${files.length} file${files.length > 1 ? 's' : ''}]${content ? ' ' + content : ''}`
+                                : content,
                             sender_id: mongoHelper.extractObjectId(senderId),
                             timestamp: new Date()
                         }
@@ -229,16 +235,21 @@ class SocketService {
                 }
             );
 
+            const conversation = await mongoHelper.findOne(
+                DatabaseConstant.COLLECTIONS.CONVERSATIONS,
+                {_id: mongoHelper.extractObjectId(conversationId)}
+            );
+
             // Lấy danh sách người nhận (ngoại trừ người gửi)
             const receivers = conversation.participants.filter(
-                p => p.toString() !== senderId.toString()
+                p => p._id.toString() !== senderId.toString()
             );
 
             // Cập nhật unread_conversations cho mỗi người nhận
-            for (const receiverId of receivers) {
+            for (const receiver of receivers) {
                 await mongoHelper.updateOne(
                     DatabaseConstant.COLLECTIONS.USERS,
-                    { _id: receiverId },
+                    {_id: mongoHelper.extractObjectId(receiver._id)},
                     {
                         $pull: {
                             unread_conversations: {
@@ -250,7 +261,7 @@ class SocketService {
 
                 await mongoHelper.updateOne(
                     DatabaseConstant.COLLECTIONS.USERS,
-                    { _id: receiverId },
+                    {_id: mongoHelper.extractObjectId(receiver._id)},
                     {
                         $push: {
                             unread_conversations: {
@@ -290,22 +301,187 @@ class SocketService {
 
         } catch (error) {
             console.error("Error handling new message:", error);
-            socket.emit('message error', { error: 'Failed to send message' });
+            socket.emit('message error', {error: 'Failed to send message'});
         }
     }
 
-    async handleMarkMessagesRead(socket, data, userId) {
+    async handleMessageDelete(socket, data, userId) {
         try {
-            const { conversationId } = data;
+            const { conversationId, messageId } = data;
 
-            // Kiểm tra conversation có tồn tại không
+            // Validate input
+            if (!conversationId || !messageId) {
+                socket.emit('message delete error', { error: 'Missing required parameters' });
+                return;
+            }
+
+            // Check if the conversation exists
             const conversation = await mongoHelper.findOne(
                 DatabaseConstant.COLLECTIONS.CONVERSATIONS,
                 { _id: mongoHelper.extractObjectId(conversationId) }
             );
 
             if (!conversation) {
-                socket.emit('read status error', { error: 'Conversation not found' });
+                socket.emit('message delete error', { error: 'Conversation not found' });
+                return;
+            }
+
+            // Find the message
+            const messageIndex = conversation.messages.findIndex(
+                msg => msg._id.toString() === messageId
+            );
+
+            if (messageIndex === -1) {
+                socket.emit('message delete error', { error: 'Message not found' });
+                return;
+            }
+
+            const message = conversation.messages[messageIndex];
+
+            // Check if the user has already deleted this message
+            if (message.deleted_by && message.deleted_by.some(id => id.toString() === userId.toString())) {
+                socket.emit('message delete error', { error: 'You have already deleted this message' });
+                return;
+            }
+
+            // Add the user to the deleted_by array
+            await mongoHelper.updateOne(
+                DatabaseConstant.COLLECTIONS.CONVERSATIONS,
+                {
+                    _id: mongoHelper.extractObjectId(conversationId),
+                    "messages._id": mongoHelper.extractObjectId(messageId)
+                },
+                {
+                    $push: {
+                        "messages.$.deleted_by": mongoHelper.extractObjectId(userId)
+                    }
+                }
+            );
+
+            // Notify only the user who deleted the message
+            socket.emit('message deleted', {
+                conversation_id: conversationId,
+                message_id: messageId,
+                deleted_by: userId
+            });
+
+        } catch (error) {
+            console.error("Error deleting message:", error);
+            socket.emit('message delete error', { error: 'Failed to delete message' });
+        }
+    }
+
+    async handleMessageRevoke(socket, data, userId) {
+        try {
+            const { conversationId, messageId } = data;
+
+            // Validate input
+            if (!conversationId || !messageId) {
+                socket.emit('message revoke error', { error: 'Missing required parameters' });
+                return;
+            }
+
+            // Check if the conversation exists
+            const conversation = await mongoHelper.findOne(
+                DatabaseConstant.COLLECTIONS.CONVERSATIONS,
+                { _id: mongoHelper.extractObjectId(conversationId) }
+            );
+
+            if (!conversation) {
+                socket.emit('message revoke error', { error: 'Conversation not found' });
+                return;
+            }
+
+            // Find the message
+            const messageIndex = conversation.messages.findIndex(
+                msg => msg._id.toString() === messageId
+            );
+
+            if (messageIndex === -1) {
+                socket.emit('message revoke error', { error: 'Message not found' });
+                return;
+            }
+
+            const message = conversation.messages[messageIndex];
+
+            // Check if the user is the sender of the message
+            if (message.sender_id.toString() !== userId.toString()) {
+                socket.emit('message revoke error', { error: 'You can only revoke your own messages' });
+                return;
+            }
+
+            // Check if the message is already revoked
+            if (message.is_revoked) {
+                socket.emit('message revoke error', { error: 'This message has already been revoked' });
+                return;
+            }
+
+            // Check if the message is within the revoke time limit (e.g., 5 minutes)
+            // const messageSentTime = new Date(message.send_timestamp);
+            // const currentTime = new Date();
+            // const timeDifferenceInMinutes = (currentTime - messageSentTime) / (1000 * 60);
+            //
+            // const REVOKE_TIME_LIMIT_MINUTES = 5; // Set your time limit here
+            //
+            // if (timeDifferenceInMinutes > REVOKE_TIME_LIMIT_MINUTES) {
+            //     socket.emit('message revoke error', {
+            //         error: `Messages can only be revoked within ${REVOKE_TIME_LIMIT_MINUTES} minutes of sending`
+            //     });
+            //     return;
+            // }
+
+            // Mark the message as revoked
+            await mongoHelper.updateOne(
+                DatabaseConstant.COLLECTIONS.CONVERSATIONS,
+                {
+                    _id: mongoHelper.extractObjectId(conversationId),
+                    "messages._id": mongoHelper.extractObjectId(messageId)
+                },
+                {
+                    $set: { "messages.$.is_revoked": true }
+                }
+            );
+
+            // Update last_message if it was the last message
+            if (conversation.last_message &&
+                conversation.messages[messageIndex]._id.toString() === conversation.last_message._id?.toString()) {
+
+                await mongoHelper.updateOne(
+                    DatabaseConstant.COLLECTIONS.CONVERSATIONS,
+                    { _id: mongoHelper.extractObjectId(conversationId) },
+                    {
+                        $set: {
+                            "last_message.content": "This message was revoked"
+                        }
+                    }
+                );
+            }
+
+            // Notify all participants in the conversation about the revoked message
+            this.io.to(`conversation:${conversationId}`).emit('message revoked', {
+                conversation_id: conversationId,
+                message_id: messageId,
+                revoked_by: userId
+            });
+
+        } catch (error) {
+            console.error("Error revoking message:", error);
+            socket.emit('message revoke error', { error: 'Failed to revoke message' });
+        }
+    }
+
+    async handleMarkMessagesRead(socket, data, userId) {
+        try {
+            const {conversationId} = data;
+
+            // Kiểm tra conversation có tồn tại không
+            const conversation = await mongoHelper.findOne(
+                DatabaseConstant.COLLECTIONS.CONVERSATIONS,
+                {_id: mongoHelper.extractObjectId(conversationId)}
+            );
+
+            if (!conversation) {
+                socket.emit('read status error', {error: 'Conversation not found'});
                 return;
             }
 
@@ -315,7 +491,7 @@ class SocketService {
             );
 
             if (!isParticipant) {
-                socket.emit('read status error', { error: 'You are not a participant of this conversation' });
+                socket.emit('read status error', {error: 'You are not a participant of this conversation'});
                 return;
             }
 
@@ -326,8 +502,8 @@ class SocketService {
                     _id: mongoHelper.extractObjectId(conversationId),
                     "messages": {
                         $elemMatch: {
-                            "sender_id": { $ne: mongoHelper.extractObjectId(userId) },
-                            "read_by.user_id": { $ne: mongoHelper.extractObjectId(userId) }
+                            "sender_id": {$ne: mongoHelper.extractObjectId(userId)},
+                            "read_by.user_id": {$ne: mongoHelper.extractObjectId(userId)}
                         }
                     }
                 },
@@ -342,8 +518,8 @@ class SocketService {
                 {
                     arrayFilters: [
                         {
-                            "elem.sender_id": { $ne: mongoHelper.extractObjectId(userId) },
-                            "elem.read_by.user_id": { $ne: mongoHelper.extractObjectId(userId) }
+                            "elem.sender_id": {$ne: mongoHelper.extractObjectId(userId)},
+                            "elem.read_by.user_id": {$ne: mongoHelper.extractObjectId(userId)}
                         }
                     ],
                     multi: true
@@ -353,7 +529,7 @@ class SocketService {
             // Xóa conversation khỏi danh sách unread_conversations của user
             await mongoHelper.updateOne(
                 DatabaseConstant.COLLECTIONS.USERS,
-                { _id: mongoHelper.extractObjectId(userId) },
+                {_id: mongoHelper.extractObjectId(userId)},
                 {
                     $pull: {
                         unread_conversations: {
@@ -372,7 +548,7 @@ class SocketService {
 
         } catch (error) {
             console.error("Error marking messages as read:", error);
-            socket.emit('read status error', { error: 'Failed to mark messages as read' });
+            socket.emit('read status error', {error: 'Failed to mark messages as read'});
         }
     }
 
@@ -381,7 +557,7 @@ class SocketService {
             // Lấy thông tin user bao gồm unread_conversations
             const user = await mongoHelper.findOne(
                 DatabaseConstant.COLLECTIONS.USERS,
-                { _id: mongoHelper.extractObjectId(userId) }
+                {_id: mongoHelper.extractObjectId(userId)}
             );
 
             if (!user || !this.connectedUsers.has(userId)) return;
