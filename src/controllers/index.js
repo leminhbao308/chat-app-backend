@@ -4,6 +4,7 @@ import ConversationController from "./conversation.controller.js";
 import SocketController from "./socket.controller.js";
 import ContactController from "./contact.controller.js";
 import UserController from "./user.controller.js";
+import MediaController from "./media.controller.js";
 
 const controllers = {
     auth: AuthController,
@@ -12,6 +13,7 @@ const controllers = {
     conversation: ConversationController,
     socket: SocketController,
     contact: ContactController,
+    media: MediaController,
 }
 
 export default controllers

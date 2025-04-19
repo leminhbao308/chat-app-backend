@@ -22,6 +22,7 @@ import SocketService from "./services/socket.service.js";
 import SocketRouter from "./routes/socket.route.js";
 import ContactRouter from "./routes/contacts.route.js";
 import SwaggerRouter from "./routes/swagger.route.js";
+import MediaRouter from "./routes/media.route.js";
 
 class App {
     constructor() {
@@ -86,6 +87,7 @@ class App {
         this.app.use(ApiConstant.MESSAGES.ROOT_PATH, MessageRouter);
         this.app.use(ApiConstant.WEBSOCKET.ROOT_PATH, SocketRouter);
         this.app.use(ApiConstant.CONTACTS.ROOT_PATH, ContactRouter);
+        this.app.use(ApiConstant.MEDIA.ROOT_PATH, MediaRouter);
 
         // Add Swagger Documents
         this.app.use("/api-docs", SwaggerRouter);

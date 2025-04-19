@@ -18,6 +18,8 @@ const SocketConstant = {
     ON_JOIN_CONVERSATION: "join conversation",
     ON_LEAVE_CONVERSATION: "leave conversation",
     ON_MESSAGE_SEND: "send message",
+    ON_MESSAGE_DELETE: 'delete message',
+    ON_MESSAGE_REVOKE: 'revoke message',
     ON_MARK_MESSAGES_READ: "mark messages read",
     ON_TYPING: "typing",
     ON_STOP_TYPING: "stop typing",

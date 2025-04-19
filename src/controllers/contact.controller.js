@@ -74,7 +74,8 @@ const ContactController = {
             const { requestId: requestSender } = req.params;
 
             // Lấy thông tin yêu cầu kết bạn
-            const request = repos.contact.getPendingRequest(requestSender, userId);
+            // const request = repos.contact.getPendingRequest(requestSender, userId);
+            const request = await repos.contact.getPendingRequest(requestSender, userId);
 
             if (!request) {
                 return res.status(StatusConstant.NOT_FOUND).json(
@@ -105,7 +106,8 @@ const ContactController = {
             const { requestId: requestSender } = req.params;
 
             // Lấy thông tin yêu cầu kết bạn
-            const request = repos.contact.getPendingRequest(requestSender, userId);
+            // const request = repos.contact.getPendingRequest(requestSender, userId);
+            const request = await repos.contact.getPendingRequest(requestSender, userId);
 
             if (!request) {
                 return res.status(StatusConstant.NOT_FOUND).json(

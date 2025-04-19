@@ -182,7 +182,6 @@ const AuthController = {
         try {
             // Get refresh token from cookie or body
             const refreshToken = req.body.refresh_token;
-            console.log(refreshToken);
             if (!refreshToken) {
                 return res.status(StatusConstant.UNAUTHORIZED).json(
                     ResponseUtils.unauthorizedResponse('Không tìm thấy Refresh Token')
@@ -200,7 +199,6 @@ const AuthController = {
             await repos.auth.deleteRefreshToken(refreshToken);
             // Verify refresh token
             try {
-
                 const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
 
                 // Generate new token
@@ -209,14 +207,12 @@ const AuthController = {
                     JWT_SECRET,
                     {expiresIn: TOKEN_EXPIRY}
                 );
-
                 // Generate new refresh token
                 const newRefreshToken = jwt.sign(
                     {user_id: decoded.user_id, phone_number: decoded.phone_number},
                     JWT_REFRESH_SECRET,
                     {expiresIn: REFRESH_TOKEN_EXPIRY}
                 );
-
                 // Store new refresh token in database
                 const saveRefreshTokenResult = await repos.auth.saveRefreshToken(
                     {

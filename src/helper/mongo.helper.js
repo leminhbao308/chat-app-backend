@@ -8,6 +8,10 @@ class MongoHelper {
         this.connectionPromise = null;
     }
 
+    generateId() {
+        return new ObjectId();
+    }
+
     extractObjectId(stringIdOrObjectId) {
         return stringIdOrObjectId instanceof ObjectId
             ? stringIdOrObjectId

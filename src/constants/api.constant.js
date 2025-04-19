@@ -126,7 +126,7 @@ const ApiConstant = {
         },
         // POST /contacts/:requestId/cancel - Từ chối lời mời kết bạn
         CANCEL: {
-            path: '/:requestId/reject',
+            path: '/:requestId/cancel',
             method: 'post',
             description: 'Từ chối lời mời kết bạn'
         },
@@ -357,32 +357,18 @@ const ApiConstant = {
 
     // Media Routes
     MEDIA: {
-        // POST /media/upload - Tải lên tệp đa phương tiện
-        UPLOAD: {
-            path: '/media/upload',
+        ROOT_PATH: '/media',
+        // POST /media/one-attachment - Tải 1 file lên server
+        UPLOAD_ONE: {
+            path: '/one-attachment',
             method: 'post',
-            description: 'Tải lên tệp đa phương tiện (hình ảnh, video, âm thanh, tệp)'
+            description: 'Tải 1 file lên server'
         },
-        // GET /media/:id - Lấy tệp đa phương tiện
-        GET: {
-            path: '/media/:id',
-            method: 'get',
-            description: 'Lấy tệp đa phương tiện',
-            pathWithParams: (id) => `/media/${id}`
-        },
-        // DELETE /media/:id - Xóa tệp đa phương tiện
-        DELETE: {
-            path: '/media/:id',
-            method: 'delete',
-            description: 'Xóa tệp đa phương tiện',
-            pathWithParams: (id) => `/media/${id}`
-        },
-        // GET /conversations/:conversationId/media - Lấy tất cả phương tiện trong cuộc trò chuyện
-        CONVERSATION_MEDIA: {
-            path: '/conversations/:conversationId/media',
-            method: 'get',
-            description: 'Lấy tất cả phương tiện trong cuộc trò chuyện',
-            pathWithParams: (conversationId) => `/conversations/${conversationId}/media`
+        // POST /media/multi-attachments - Tải lên tối đa 5 files
+        UPLOAD_MULTIPLE: {
+            path: '/multi-attachments',
+            method: 'post',
+            description: 'Tải lên tối đa 5 files'
         }
     },
 
