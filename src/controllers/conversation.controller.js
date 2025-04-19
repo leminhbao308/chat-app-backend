@@ -108,7 +108,7 @@ const conversationController = {
                 };
             });
 
-            res.json(ResponseUtils.successResponse(conversationsWithUnreadCount));
+            res.json(ResponseUtils.successResponse("Successfully get conversation",conversationsWithUnreadCount));
         } catch (error) {
             console.error("Error getting conversations:", error);
             res.status(StatusConstant.INTERNAL_SERVER_ERROR).json(ResponseUtils.serverErrorResponse("Failed to get conversations"));

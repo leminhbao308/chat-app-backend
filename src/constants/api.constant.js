@@ -168,7 +168,7 @@ const ApiConstant = {
         // GET /conversations/:id - Lấy cuộc trò chuyện của người dùng theo id
         GET: {
             path: '/:id',
-            method: 'post',
+            method: 'get',
             description: 'Lấy cuộc trò chuyện của người dùng theo id'
         },
         // POST /conversations - Tạo cuộc trò chuyện mới
