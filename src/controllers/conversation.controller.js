@@ -108,7 +108,7 @@ const conversationController = {
                 };
             });
 
-            res.json(ResponseUtils.successResponse("Successfully get conversation",conversationsWithUnreadCount));
+            res.status(StatusConstant.OK).json(ResponseUtils.successResponse("Successfully get conversations", conversationsWithUnreadCount));
         } catch (error) {
             console.error("Error getting conversations:", error);
             res.status(StatusConstant.INTERNAL_SERVER_ERROR).json(ResponseUtils.serverErrorResponse("Failed to get conversations"));
@@ -138,7 +138,11 @@ const conversationController = {
                 uc => uc.conversation_id.toString() === conversation._id.toString()
             );
 
-            res.json(ResponseUtils.successResponse({...conversation, unread_count: unreadInfo ? unreadInfo.unread_count : 0}));
+            res.status(StatusConstant.OK)
+                .json(ResponseUtils.successResponse("Successfully get conversations", {
+                    ...conversation,
+                    unread_count: unreadInfo ? unreadInfo.unread_count : 0
+                }));
         } catch (error) {
             console.error("Error getting conversations:", error);
             res.status(StatusConstant.INTERNAL_SERVER_ERROR).json(ResponseUtils.serverErrorResponse("Failed to get conversations"));
