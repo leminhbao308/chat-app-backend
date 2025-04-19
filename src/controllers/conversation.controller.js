@@ -85,7 +85,7 @@ const conversationController = {
             // Tìm các cuộc trò chuyện mà user tham gia
             const conversations = await mongoHelper.find(
                 DatabaseConstant.COLLECTIONS.CONVERSATIONS,
-                { participants: mongoHelper.extractObjectId(userId) }
+                { 'participants._id': mongoHelper.extractObjectId(userId) }
             );
 
             // Lấy thông tin unread_conversations từ user
@@ -107,8 +107,6 @@ const conversationController = {
                     unread_count: unreadInfo ? unreadInfo.unread_count : 0
                 };
             });
-
-
 
             res.json(ResponseUtils.successResponse(conversationsWithUnreadCount));
         } catch (error) {
