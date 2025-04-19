@@ -402,61 +402,7 @@ class SocketService {
       });
     }
   }
-
-  async handleMessageRevoke(socket, data, userId) {
-    try {
-      const { conversationId, messageId } = data;
-
-      // Validate input
-      if (!conversationId || !messageId) {
-        socket.emit("message revoke error", {
-          error: "Missing required parameters",
-        });
-        return;
-      }
-
-      // Check if the conversation exists
-      const conversation = await mongoHelper.findOne(
-        DatabaseConstant.COLLECTIONS.CONVERSATIONS,
-        { _id: mongoHelper.extractObjectId(conversationId) }
-      );
-
-      if (!conversation) {
-        socket.emit("message revoke error", {
-          error: "Conversation not found",
-        });
-        return;
-      }
-
-      // Find the message
-      const messageIndex = conversation.messages.findIndex(
-        (msg) => msg._id.toString() === messageId
-      );
-
-      if (messageIndex === -1) {
-        socket.emit("message revoke error", { error: "Message not found" });
-        return;
-      }
-
-      const message = conversation.messages[messageIndex];
-
-      // Check if the user is the sender of the message
-      if (message.sender_id.toString() !== userId.toString()) {
-        socket.emit("message revoke error", {
-          error: "You can only revoke your own messages",
-        });
-        return;
-      }
-
-      // Check if the message is already revoked
-      if (message.is_revoked) {
-        socket.emit("message revoke error", {
-          error: "This message has already been revoked",
-        });
-        return;
-      }
-
-      // Check if the message is within the revoke time limit (e.g., 5 minutes)
+  // Check if the message is within the revoke time limit (e.g., 5 minutes)
       // const messageSentTime = new Date(message.send_timestamp);
       // const currentTime = new Date();
       // const timeDifferenceInMinutes = (currentTime - messageSentTime) / (1000 * 60);
@@ -469,49 +415,105 @@ class SocketService {
       //     });
       //     return;
       // }
-
-      // Mark the message as revoked
-      await mongoHelper.updateOne(
-        DatabaseConstant.COLLECTIONS.CONVERSATIONS,
-        {
-          _id: mongoHelper.extractObjectId(conversationId),
-          "messages._id": mongoHelper.extractObjectId(messageId),
-        },
-        {
-          $set: { "messages.$.is_revoked": true },
-        }
-      );
-
-      // Update last_message if it was the last message
-      if (
-        conversation.last_message &&
-        conversation.messages[messageIndex]._id.toString() ===
-          conversation.last_message._id?.toString()
-      ) {
-        await mongoHelper.updateOne(
-          DatabaseConstant.COLLECTIONS.CONVERSATIONS,
-          { _id: mongoHelper.extractObjectId(conversationId) },
-          {
-            $set: {
-              "last_message.content": "This message was revoked",
-            },
+      async handleMessageRevoke(socket, data, userId) {
+        try {
+          const { conversationId, messageId } = data;
+          console.log("Revoke message received on server", conversationId, messageId);
+      
+          // Validate input
+          if (!conversationId || !messageId) {
+            socket.emit("message revoke error", {
+              error: "Missing required parameters",
+            });
+            return;
           }
-        );
+      
+          // Check if the conversation exists
+          const conversation = await mongoHelper.findOne(
+            DatabaseConstant.COLLECTIONS.CONVERSATIONS,
+            { _id: mongoHelper.extractObjectId(conversationId) }
+          );
+      
+          if (!conversation) {
+            socket.emit("message revoke error", {
+              error: "Conversation not found",
+            });
+            return;
+          }
+      
+          // Find the message in the conversation
+          const messageIndex = conversation.messages.findIndex(
+            (msg) => msg._id.toString() === messageId
+          );
+      
+          if (messageIndex === -1) {
+            socket.emit("message revoke error", { error: "Message not found" });
+            return;
+          }
+      
+          const message = conversation.messages[messageIndex];
+      
+          // Check if the user is the sender of the message
+          if (message.sender_id.toString() !== userId.toString()) {
+            socket.emit("message revoke error", {
+              error: "You can only revoke your own messages",
+            });
+            return;
+          }
+      
+          // Check if the message is already revoked
+          if (message.is_revoked) {
+            socket.emit("message revoke error", {
+              error: "This message has already been revoked",
+            });
+            return;
+          }
+      
+          // Mark the message as revoked in the database
+          const result = await mongoHelper.updateOne(
+            DatabaseConstant.COLLECTIONS.CONVERSATIONS,
+            {
+              _id: mongoHelper.extractObjectId(conversationId),
+              "messages._id": mongoHelper.extractObjectId(messageId),
+            },
+            {
+              $set: { "messages.$.is_revoked": true },
+            }
+          );
+          console.log("Number of documents updated:", result.modifiedCount);
+      
+          // Update last_message if it was the last message
+          if (
+            conversation.last_message &&
+            conversation.messages[messageIndex]._id.toString() ===
+              conversation.last_message._id?.toString()
+          ) {
+            await mongoHelper.updateOne(
+              DatabaseConstant.COLLECTIONS.CONVERSATIONS,
+              { _id: mongoHelper.extractObjectId(conversationId) },
+              {
+                $set: {
+                  "last_message.content": "This message was revoked",
+                },
+              }
+            );
+          }
+      
+          // Notify all participants in the conversation about the revoked message
+          this.io.to(`conversation:${conversationId}`).emit("message revoked", {
+            conversation_id: conversationId,
+            message_id: messageId,
+            revoked_by: userId,
+          });
+      
+        } catch (error) {
+          console.error("Error revoking message:", error);
+          socket.emit("message revoke error", {
+            error: "Failed to revoke message",
+          });
+        }
       }
 
-      // Notify all participants in the conversation about the revoked message
-      this.io.to(`conversation:${conversationId}`).emit("message revoked", {
-        conversation_id: conversationId,
-        message_id: messageId,
-        revoked_by: userId,
-      });
-    } catch (error) {
-      console.error("Error revoking message:", error);
-      socket.emit("message revoke error", {
-        error: "Failed to revoke message",
-      });
-    }
-  }
 
   async handleMarkMessagesRead(socket, data, userId) {
     try {
