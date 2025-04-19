@@ -14,7 +14,7 @@ const MessageController = {
                 DatabaseConstant.COLLECTIONS.CONVERSATIONS,
                 {
                     _id: mongoHelper.extractObjectId(conversationId),
-                    participants: mongoHelper.extractObjectId(userId)
+                    "participants._id": mongoHelper.extractObjectId(userId)
                 }
             );
 
@@ -46,7 +46,7 @@ const MessageController = {
                 DatabaseConstant.COLLECTIONS.CONVERSATIONS,
                 {
                     _id: mongoHelper.extractObjectId(conversationId),
-                    participants: mongoHelper.extractObjectId(userId)
+                    'participants._id': mongoHelper.extractObjectId(userId)
                 }
             );
 
