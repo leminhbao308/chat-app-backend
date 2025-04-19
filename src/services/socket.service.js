@@ -587,7 +587,7 @@ class SocketService {
 
     broadcastUserInfo(userId, userData) {
         // Gửi thông tin cập nhật user cho tất cả users
-        this.io.emit('user info updated', {
+        this.io.emit('emit user info updated', {
             user_id: userId,
             user_data: userData
         });

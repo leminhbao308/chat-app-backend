@@ -3,7 +3,8 @@ const SocketConstant = {
     DISCONNECT: "disconnect",
 
     PROFILE: {
-        ON_INFO_UPDATED: "user info updated",
+        ON_INFO_UPDATED: "on user info updated",
+        EMIT_INFO_UPDATED: "emit user info updated",
         ON_AVATAR_UPDATED: "avatar updated"
     },
 
