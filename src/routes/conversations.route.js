@@ -17,5 +17,10 @@ ConversationRouter.post(
     controllers.conversation.createConversation
 );
 
+ConversationRouter.get(
+    ApiConstant.CONVERSATIONS.GET.path,
+    AuthMiddleware,
+    controllers.conversation.getConversationsById
+)
 
 export default ConversationRouter;

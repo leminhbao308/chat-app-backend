@@ -8,7 +8,7 @@ const conversationController = {
     async createConversation(req, res) {
         try {
             const userId = req.user.user_id;
-            const { participants  } = req.body;
+            const {participants} = req.body;
 
             if (!participants || !Array.isArray(participants)) {
                 return res.status(StatusConstant.BAD_REQUEST).json(
@@ -35,7 +35,7 @@ const conversationController = {
                 const existingConversation = await mongoHelper.findOne(
                     DatabaseConstant.COLLECTIONS.CONVERSATIONS,
                     {
-                        'participants': { $all: allParticipants.map(p => mongoHelper.extractObjectId(p)), $size: 2  }
+                        'participants': {$all: allParticipants.map(p => mongoHelper.extractObjectId(p)), $size: 2}
                     }
                 );
 
@@ -64,7 +64,7 @@ const conversationController = {
             // Lấy lại conversation vừa tạo
             const createdConversation = await mongoHelper.findOne(
                 DatabaseConstant.COLLECTIONS.CONVERSATIONS,
-                { _id: result.insertedId }
+                {_id: result.insertedId}
             );
 
             res.status(StatusConstant.CREATED).json(
@@ -85,13 +85,13 @@ const conversationController = {
             // Tìm các cuộc trò chuyện mà user tham gia
             const conversations = await mongoHelper.find(
                 DatabaseConstant.COLLECTIONS.CONVERSATIONS,
-                { 'participants._id': mongoHelper.extractObjectId(userId) }
+                {'participants._id': mongoHelper.extractObjectId(userId)}
             );
 
             // Lấy thông tin unread_conversations từ user
             const user = await mongoHelper.findOne(
                 DatabaseConstant.COLLECTIONS.USERS,
-                { _id: mongoHelper.extractObjectId(userId) }
+                {_id: mongoHelper.extractObjectId(userId)}
             );
 
             const unreadConversations = user?.unread_conversations || [];
@@ -109,6 +109,36 @@ const conversationController = {
             });
 
             res.json(ResponseUtils.successResponse(conversationsWithUnreadCount));
+        } catch (error) {
+            console.error("Error getting conversations:", error);
+            res.status(StatusConstant.INTERNAL_SERVER_ERROR).json(ResponseUtils.serverErrorResponse("Failed to get conversations"));
+        }
+    },
+    async getConversationsById(req, res) {
+        try {
+            const {id: conversationId} = req.params;
+            const userId = req.user.user_id;
+
+            // Tìm cuộc trò chuyện mà user tham gia
+            const conversation = await mongoHelper.findOne(
+                DatabaseConstant.COLLECTIONS.CONVERSATIONS,
+                {
+                    _id: mongoHelper.extractObjectId(conversationId),
+                    'participants._id': mongoHelper.extractObjectId(userId)
+                }
+            );
+
+            // Lấy thông tin unread_conversations từ user
+            const user = repos.auth.getUserById(userId);
+
+            const unreadConversations = user?.unread_conversations || [];
+
+            // Thêm thông tin unread_count vào từng conversation
+            const unreadInfo = unreadConversations.find(
+                uc => uc.conversation_id.toString() === conversation._id.toString()
+            );
+
+            res.json(ResponseUtils.successResponse({...conversation, unread_count: unreadInfo ? unreadInfo.unread_count : 0}));
         } catch (error) {
             console.error("Error getting conversations:", error);
             res.status(StatusConstant.INTERNAL_SERVER_ERROR).json(ResponseUtils.serverErrorResponse("Failed to get conversations"));
