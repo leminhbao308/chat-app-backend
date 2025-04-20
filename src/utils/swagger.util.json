@@ -1,867 +1,1162 @@
 {
-    "swagger": "2.0",
-    "info": {
-        "title": "Công Nghệ Mới - Chat App - API Docs",
-        "description": "API Documentation cho phần Authentication của Chat App",
-        "version": "1.0"
-    },
-    "produces": [
-        "application/json"
-    ],
-    "paths": {
-        "/auth/register": {
-            "post": {
-                "tags": [
-                    "Authentication"
-                ],
-                "summary": "Đăng ký tài khoản mới",
-                "description": "API đăng ký tài khoản người dùng mới",
-                "operationId": "register",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "parameters": [
-                    {
-                        "in": "body",
-                        "name": "user",
-                        "description": "Thông tin người dùng để đăng ký",
-                        "required": true,
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "first_name": {
-                                    "type": "string",
-                                    "example": "New",
-                                    "default": "New"
-                                },
-                                "last_name": {
-                                    "type": "string",
-                                    "example": "User",
-                                    "default": "User"
-                                },
-                                "gender": {
-                                    "type": "string",
-                                    "enum": [
-                                        "male",
-                                        "female"
-                                    ],
-                                    "default": "male"
-                                },
-                                "date_of_birth": {
-                                    "type": "string",
-                                    "pattern": "^\\d{2}-\\d{2}-\\d{4}$",
-                                    "example": "01-01-1999",
-                                    "default": "01-01-1999"
-                                },
-                                "password": {
-                                    "type": "string",
-                                    "format": "password",
-                                    "minLength": 8,
-                                    "example": "Example@123",
-                                    "description": "Mật khẩu phải chứa ít nhất một chữ hoa, một chữ thường, một số và một ký tự đặc biệt"
-                                },
-                                "avatar_url": {
-                                    "type": "string",
-                                    "format": "uri"
-                                },
-                                "thumbnail_url": {
-                                    "type": "string",
-                                    "format": "uri"
-                                },
-                                "phone_number": {
-                                    "type": "string",
-                                    "example": "0912345678",
-                                    "description": "Số điện thoại theo định dạng hợp lệ"
-                                }
-                            },
-                            "required": [
-                                "password",
-                                "phone_number"
-                            ]
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Đăng ký thành công",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "success": {
-                                    "type": "boolean",
-                                    "example": true
-                                },
-                                "describe": {
-                                    "type": "string",
-                                    "example": "Đăng ký thành công"
-                                },
-                                "status_code": {
-                                    "type": "integer",
-                                    "example": 201
-                                },
-                                "content": {
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Dữ liệu không hợp lệ",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "success": {
-                                    "type": "boolean",
-                                    "example": false
-                                },
-                                "describe": {
-                                    "type": "string",
-                                    "example": "Request không hợp lệ"
-                                },
-                                "status_code": {
-                                    "type": "integer",
-                                    "example": 400
-                                },
-                                "content": {
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "409": {
-                        "description": "Số điện thoại đã được đăng ký",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "success": {
-                                    "type": "boolean",
-                                    "example": false
-                                },
-                                "describe": {
-                                    "type": "string",
-                                    "example": "Số điện thoại đã được đăng ký"
-                                },
-                                "status_code": {
-                                    "type": "integer",
-                                    "example": 409
-                                },
-                                "content": {
-                                    "type": "null"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/auth/login": {
-            "post": {
-                "tags": [
-                    "Authentication"
-                ],
-                "summary": "Đăng nhập",
-                "description": "API đăng nhập vào hệ thống",
-                "operationId": "login",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "parameters": [
-                    {
-                        "in": "body",
-                        "name": "credentials",
-                        "description": "Thông tin đăng nhập",
-                        "required": true,
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "phone_number": {
-                                    "type": "string",
-                                    "example": "+84912345678"
-                                },
-                                "password": {
-                                    "type": "string",
-                                    "format": "password",
-                                    "example": "Password123!"
-                                },
-                                "device_id": {
-                                    "type": "string"
-                                },
-                                "device_type": {
-                                    "type": "string",
-                                    "enum": [
-                                        "MOB",
-                                        "WEB"
-                                    ]
-                                }
-                            },
-                            "required": [
-                                "phone_number",
-                                "password"
-                            ]
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Đăng nhập thành công",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "success": {
-                                    "type": "boolean",
-                                    "example": true
-                                },
-                                "describe": {
-                                    "type": "string",
-                                    "example": "Đăng nhập thành công"
-                                },
-                                "status_code": {
-                                    "type": "integer",
-                                    "example": 200
-                                },
-                                "content": {
-                                    "type": "object",
-                                    "properties": {
-                                        "token": {
-                                            "type": "string"
-                                        },
-                                        "refresh_token": {
-                                            "type": "string"
-                                        },
-                                        "user": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Dữ liệu không hợp lệ",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "success": {
-                                    "type": "boolean",
-                                    "example": false
-                                },
-                                "describe": {
-                                    "type": "string",
-                                    "example": "Request không hợp lệ"
-                                },
-                                "status_code": {
-                                    "type": "integer",
-                                    "example": 400
-                                },
-                                "content": {
-                                    "type": "null"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Đăng nhập thất bại",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "success": {
-                                    "type": "boolean",
-                                    "example": false
-                                },
-                                "describe": {
-                                    "type": "string",
-                                    "example": "Thông tin đăng nhập không chính xác"
-                                },
-                                "status_code": {
-                                    "type": "integer",
-                                    "example": 401
-                                },
-                                "content": {
-                                    "type": "null"
-                                }
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Tài khoản bị vô hiệu hóa",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "success": {
-                                    "type": "boolean",
-                                    "example": false
-                                },
-                                "describe": {
-                                    "type": "string",
-                                    "example": "Tài khoản đã bị vô hiệu hóa"
-                                },
-                                "status_code": {
-                                    "type": "integer",
-                                    "example": 403
-                                },
-                                "content": {
-                                    "type": "null"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/auth/logout": {
-            "post": {
-                "tags": [
-                    "Authentication"
-                ],
-                "summary": "Đăng xuất",
-                "description": "API đăng xuất khỏi hệ thống",
-                "operationId": "logout",
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Đăng xuất thành công",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "success": {
-                                    "type": "boolean",
-                                    "example": true
-                                },
-                                "describe": {
-                                    "type": "string",
-                                    "example": "Đăng xuất thành công"
-                                },
-                                "status_code": {
-                                    "type": "integer",
-                                    "example": 200
-                                },
-                                "content": {
-                                    "type": "null"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Không được xác thực",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "success": {
-                                    "type": "boolean",
-                                    "example": false
-                                },
-                                "describe": {
-                                    "type": "string",
-                                    "example": "Không được phép truy cập"
-                                },
-                                "status_code": {
-                                    "type": "integer",
-                                    "example": 401
-                                },
-                                "content": {
-                                    "type": "null"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/auth/refresh-token": {
-            "post": {
-                "tags": [
-                    "Authentication"
-                ],
-                "summary": "Làm mới token xác thực",
-                "description": "API làm mới token xác thực với refresh token",
-                "operationId": "refreshToken",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "parameters": [
-                    {
-                        "in": "body",
-                        "name": "refreshToken",
-                        "description": "Refresh Token",
-                        "required": true,
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "refresh_token": {
-                                    "type": "string"
-                                }
-                            },
-                            "required": [
-                                "refresh_token"
-                            ]
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Làm mới token thành công",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "success": {
-                                    "type": "boolean",
-                                    "example": true
-                                },
-                                "describe": {
-                                    "type": "string",
-                                    "example": "Làm mới token thành công"
-                                },
-                                "status_code": {
-                                    "type": "integer",
-                                    "example": 200
-                                },
-                                "content": {
-                                    "type": "object",
-                                    "properties": {
-                                        "token": {
-                                            "type": "string"
-                                        },
-                                        "refresh_token": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Refresh token không hợp lệ hoặc hết hạn",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "success": {
-                                    "type": "boolean",
-                                    "example": false
-                                },
-                                "describe": {
-                                    "type": "string",
-                                    "example": "Refresh Token không hợp lệ"
-                                },
-                                "status_code": {
-                                    "type": "integer",
-                                    "example": 401
-                                },
-                                "content": {
-                                    "type": "null"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Lỗi server",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "success": {
-                                    "type": "boolean",
-                                    "example": false
-                                },
-                                "describe": {
-                                    "type": "string",
-                                    "example": "Làm mới token thất bại"
-                                },
-                                "status_code": {
-                                    "type": "integer",
-                                    "example": 500
-                                },
-                                "content": {
-                                    "type": "null"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/auth/reset-password": {
-            "post": {
-                "tags": [
-                    "Authentication"
-                ],
-                "summary": "Đặt lại mật khẩu",
-                "description": "API đặt lại mật khẩu người dùng",
-                "operationId": "resetPassword",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "parameters": [
-                    {
-                        "in": "body",
-                        "name": "resetPassword",
-                        "description": "Thông tin đặt lại mật khẩu",
-                        "required": true,
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "phone_number": {
-                                    "type": "string",
-                                    "example": "+84912345678"
-                                },
-                                "new_password": {
-                                    "type": "string",
-                                    "format": "password",
-                                    "example": "NewPassword123!",
-                                    "description": "Mật khẩu phải chứa ít nhất một chữ hoa, một chữ thường, một số và một ký tự đặc biệt"
-                                }
-                            },
-                            "required": [
-                                "phone_number",
-                                "new_password"
-                            ]
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Đặt lại mật khẩu thành công",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "success": {
-                                    "type": "boolean",
-                                    "example": true
-                                },
-                                "describe": {
-                                    "type": "string",
-                                    "example": "Đặt lại mật khẩu thành công"
-                                },
-                                "status_code": {
-                                    "type": "integer",
-                                    "example": 200
-                                },
-                                "content": {
-                                    "type": "null"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Dữ liệu không hợp lệ",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "success": {
-                                    "type": "boolean",
-                                    "example": false
-                                },
-                                "describe": {
-                                    "type": "string",
-                                    "example": "Đặt lại mật khẩu thất bại"
-                                },
-                                "status_code": {
-                                    "type": "integer",
-                                    "example": 400
-                                },
-                                "content": {
-                                    "type": "null"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Lỗi server",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "success": {
-                                    "type": "boolean",
-                                    "example": false
-                                },
-                                "describe": {
-                                    "type": "string",
-                                    "example": "Đặt lại mật khẩu thất bại"
-                                },
-                                "status_code": {
-                                    "type": "integer",
-                                    "example": 500
-                                },
-                                "content": {
-                                    "type": "null"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/auth/change-password": {
-            "post": {
-                "tags": [
-                    "Authentication"
-                ],
-                "summary": "Thay đổi mật khẩu",
-                "description": "API thay đổi mật khẩu của người dùng hiện tại",
-                "operationId": "changePassword",
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "parameters": [
-                    {
-                        "in": "body",
-                        "name": "changePassword",
-                        "description": "Thông tin thay đổi mật khẩu",
-                        "required": true,
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "current_password": {
-                                    "type": "string",
-                                    "format": "password",
-                                    "example": "CurrentPassword123!"
-                                },
-                                "new_password": {
-                                    "type": "string",
-                                    "format": "password",
-                                    "example": "NewPassword123!",
-                                    "description": "Mật khẩu phải chứa ít nhất một chữ hoa, một chữ thường, một số và một ký tự đặc biệt"
-                                }
-                            },
-                            "required": [
-                                "current_password",
-                                "new_password"
-                            ]
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Thay đổi mật khẩu thành công",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "success": {
-                                    "type": "boolean",
-                                    "example": true
-                                },
-                                "describe": {
-                                    "type": "string",
-                                    "example": "Thay đổi mật khẩu thành công"
-                                },
-                                "status_code": {
-                                    "type": "integer",
-                                    "example": 200
-                                },
-                                "content": {
-                                    "type": "null"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Dữ liệu không hợp lệ",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "success": {
-                                    "type": "boolean",
-                                    "example": false
-                                },
-                                "describe": {
-                                    "type": "string",
-                                    "example": "Thông tin đăng nhập không chính xác"
-                                },
-                                "status_code": {
-                                    "type": "integer",
-                                    "example": 400
-                                },
-                                "content": {
-                                    "type": "null"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Lỗi server",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "success": {
-                                    "type": "boolean",
-                                    "example": false
-                                },
-                                "describe": {
-                                    "type": "string",
-                                    "example": "Thay đổi mật khẩu thất bại"
-                                },
-                                "status_code": {
-                                    "type": "integer",
-                                    "example": 500
-                                },
-                                "content": {
-                                    "type": "null"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/auth/me": {
-            "get": {
-                "tags": [
-                    "Authentication"
-                ],
-                "summary": "Lấy thông tin người dùng hiện tại",
-                "description": "API lấy thông tin của người dùng đã đăng nhập",
-                "operationId": "getUserInfo",
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Lấy thông tin thành công",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "success": {
-                                    "type": "boolean",
-                                    "example": true
-                                },
-                                "describe": {
-                                    "type": "string",
-                                    "example": "Lấy thông tin người dùng thành công"
-                                },
-                                "status_code": {
-                                    "type": "integer",
-                                    "example": 200
-                                },
-                                "content": {
-                                    "type": "object",
-                                    "properties": {
-                                        "_id": {
-                                            "type": "string"
-                                        },
-                                        "first_name": {
-                                            "type": "string"
-                                        },
-                                        "last_name": {
-                                            "type": "string"
-                                        },
-                                        "gender": {
-                                            "type": "string",
-                                            "enum": [
-                                                "male",
-                                                "female"
-                                            ]
-                                        },
-                                        "date_of_birth": {
-                                            "type": "string"
-                                        },
-                                        "phone_number": {
-                                            "type": "string"
-                                        },
-                                        "avatar_url": {
-                                            "type": "string"
-                                        },
-                                        "thumbnail_url": {
-                                            "type": "string"
-                                        },
-                                        "is_active": {
-                                            "type": "boolean"
-                                        },
-                                        "created_at": {
-                                            "type": "string",
-                                            "format": "date-time"
-                                        },
-                                        "updated_at": {
-                                            "type": "string",
-                                            "format": "date-time"
-                                        },
-                                        "online_status": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Không được xác thực",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "success": {
-                                    "type": "boolean",
-                                    "example": false
-                                },
-                                "describe": {
-                                    "type": "string",
-                                    "example": "Không được phép truy cập"
-                                },
-                                "status_code": {
-                                    "type": "integer",
-                                    "example": 401
-                                },
-                                "content": {
-                                    "type": "null"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Không tìm thấy người dùng",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "success": {
-                                    "type": "boolean",
-                                    "example": false
-                                },
-                                "describe": {
-                                    "type": "string",
-                                    "example": "Không tìm thấy người dùng"
-                                },
-                                "status_code": {
-                                    "type": "integer",
-                                    "example": 404
-                                },
-                                "content": {
-                                    "type": "null"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    },
-    "securityDefinitions": {
-        "Bearer": {
-            "type": "apiKey",
-            "name": "Authorization",
-            "in": "header",
-            "description": "JWT Authorization header sử dụng Bearer scheme. Ví dụ: \"Authorization: Bearer {token}\""
-        }
+  "swagger" : "2.0",
+  "info" : {
+    "title": "Công Nghệ Mới - Chat App - API Docs",
+    "description": "API Documentation cho phần Authentication của Chat App",
+    "version": "1.0"
+  },
+    "servers" : [ {
+    "url" : "http://localhost:3000"
+  } ],
+  "components" : {
+    "securitySchemes" : {
+      "bearerAuth" : {
+        "type" : "http",
+        "scheme" : "bearer"
+      },
+      "noauthAuth" : {
+        "type" : "http",
+        "scheme" : "noauth"
+      }
     }
+  },
+  "tags" : [ {
+    "name" : "auth"
+  }, {
+    "name" : "users"
+  }, {
+    "name" : "contacts"
+  }, {
+    "name" : "socket"
+  }, {
+    "name" : "conversations"
+  }, {
+    "name" : "messages"
+  }, {
+    "name" : "media"
+  } ],
+  "paths" : {
+    "/auth/register" : {
+      "post" : {
+        "tags" : [ "auth" ],
+        "summary" : "auth/register",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "object",
+                "example" : {
+                  "first_name" : "Le",
+                  "last_name" : "Hoang Minh",
+                  "date_of_birth" : "03-08-2003",
+                  "password" : "Example@1",
+                  "phone_number" : "0858484722",
+                  "avatar_url" : "https://chat-app-be-file-storage.s3.ap-southeast-2.amazonaws.com/defaults/default_avatar_url.jpg"
+                }
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+              "description" : "Created response",
+              "content" : {
+                  "application/json" : {
+
+                  }
+              }
+          }
+        }
+      }
+    },
+    "/auth/login" : {
+      "post" : {
+        "tags" : [ "auth" ],
+        "summary" : "auth/login",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "object",
+                "example" : {
+                  "phone_number" : "0858484722",
+                  "password" : "Example@1",
+                  "device_type" : "web"
+                }
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout" : {
+      "post" : {
+        "tags" : [ "auth" ],
+        "summary" : "auth/logout",
+        "requestBody" : {
+          "content" : { }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/auth/reset-password" : {
+      "post" : {
+        "tags" : [ "auth" ],
+        "summary" : "auth/reset-password",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "object",
+                "example" : {
+                  "phone_number" : "0399405711",
+                  "new_password" : "Example@123"
+                }
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/auth/change-password" : {
+      "post" : {
+        "tags" : [ "auth" ],
+        "summary" : "auth/change-password",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "object",
+                "example" : {
+                  "current_password" : "Example@123",
+                  "new_password" : "Example@1234"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/auth/refresh-token" : {
+      "post" : {
+        "tags" : [ "auth" ],
+        "summary" : "auth/refresh-token",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "object",
+                "example" : {
+                  "refresh_token" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjdmN2YzMmY2YTVmNjk0NDBhZjYwYzFjIiwicGhvbmVfbnVtYmVyIjoiMDM5OTQwNTcxMSIsImlhdCI6MTc0NDcwOTUwNiwiZXhwIjoxNzQ0NzA5NTM2fQ.JOksJShvcZgrZJapWoFenfvPNdJLGrj0wwPqoaqj-qE"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "noauthAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/auth/me" : {
+      "get" : {
+        "tags" : [ "auth" ],
+        "summary" : "auth/me",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/users/update-info" : {
+      "post" : {
+        "tags" : [ "users" ],
+        "summary" : "users/update-info",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "object",
+                "example" : {
+                  "first_name" : "Minor",
+                  "last_name" : "Le Hoang",
+                  "date_of_birth" : "31-01-2003"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/users/profile-picture" : {
+      "post" : {
+        "tags" : [ "users" ],
+        "summary" : "users/profile-picture",
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "file" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/users/search" : {
+      "get" : {
+        "tags" : [ "users" ],
+        "summary" : "users/search",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "phone_number",
+          "in" : "query",
+          "schema" : {
+            "type" : "integer"
+          },
+          "example" : "0858484522"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/users/{id}" : {
+      "get" : {
+        "tags" : [ "users" ],
+        "summary" : "users/:id",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "schema" : {
+            "type" : "string"
+          },
+          "required" : true,
+          "example" : "{{user_id}}"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/users/profile-picture/old" : {
+      "get" : {
+        "tags" : [ "users" ],
+        "summary" : "users/profile-picture/old",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/contacts/requests" : {
+      "get" : {
+        "tags" : [ "contacts" ],
+        "summary" : "contacts/requests",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/contacts/list" : {
+      "get" : {
+        "tags" : [ "contacts" ],
+        "summary" : "contacts/list",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/contacts/sent-requests" : {
+      "get" : {
+        "tags" : [ "contacts" ],
+        "summary" : "contacts/sent-requests",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/contacts/{uid}/add" : {
+      "post" : {
+        "tags" : [ "contacts" ],
+        "summary" : "contact/:uid/add",
+        "requestBody" : {
+          "content" : { }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "uid",
+          "in" : "path",
+          "schema" : {
+            "type" : "string"
+          },
+          "required" : true,
+          "description" : "User ID",
+          "example" : "67f8036fc01c9572e09b5720"
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "headers" : {
+              "Content-Security-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+                }
+              },
+              "Cross-Origin-Opener-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "same-origin"
+                }
+              },
+              "Cross-Origin-Resource-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "same-origin"
+                }
+              },
+              "Origin-Agent-Cluster" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "?1"
+                }
+              },
+              "Referrer-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "no-referrer"
+                }
+              },
+              "Strict-Transport-Security" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "max-age=31536000; includeSubDomains"
+                }
+              },
+              "X-Content-Type-Options" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "nosniff"
+                }
+              },
+              "X-DNS-Prefetch-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "off"
+                }
+              },
+              "X-Download-Options" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "noopen"
+                }
+              },
+              "X-Frame-Options" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "SAMEORIGIN"
+                }
+              },
+              "X-Permitted-Cross-Domain-Policies" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "none"
+                }
+              },
+              "X-XSS-Protection" : {
+                "schema" : {
+                  "type" : "integer",
+                  "example" : "0"
+                }
+              },
+              "Vary" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "Origin, Accept-Encoding"
+                }
+              },
+              "Access-Control-Allow-Credentials" : {
+                "schema" : {
+                  "type" : "boolean",
+                  "example" : "true"
+                }
+              },
+              "Content-Type" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "application/json; charset=utf-8"
+                }
+              },
+              "Content-Length" : {
+                "schema" : {
+                  "type" : "integer",
+                  "example" : "83"
+                }
+              },
+              "ETag" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "W/\"53-dMBSPWo12jxwRab751dsGTuudXo\""
+                }
+              },
+              "Date" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "Tue, 15 Apr 2025 06:12:31 GMT"
+                }
+              },
+              "Connection" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "keep-alive"
+                }
+              },
+              "Keep-Alive" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "timeout=5"
+                }
+              }
+            },
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object"
+                },
+                "example" : {
+                  "success" : true,
+                  "describe" : "Contact request sent",
+                  "status_code" : 200,
+                  "content" : null
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contacts/{requesterId}/accept" : {
+      "post" : {
+        "tags" : [ "contacts" ],
+        "summary" : "/contact/:requesterId/accept",
+        "requestBody" : {
+          "content" : { }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "requesterId",
+          "in" : "path",
+          "schema" : {
+            "type" : "string"
+          },
+          "required" : true
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "headers" : {
+              "Content-Security-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+                }
+              },
+              "Cross-Origin-Opener-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "same-origin"
+                }
+              },
+              "Cross-Origin-Resource-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "same-origin"
+                }
+              },
+              "Origin-Agent-Cluster" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "?1"
+                }
+              },
+              "Referrer-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "no-referrer"
+                }
+              },
+              "Strict-Transport-Security" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "max-age=31536000; includeSubDomains"
+                }
+              },
+              "X-Content-Type-Options" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "nosniff"
+                }
+              },
+              "X-DNS-Prefetch-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "off"
+                }
+              },
+              "X-Download-Options" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "noopen"
+                }
+              },
+              "X-Frame-Options" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "SAMEORIGIN"
+                }
+              },
+              "X-Permitted-Cross-Domain-Policies" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "none"
+                }
+              },
+              "X-XSS-Protection" : {
+                "schema" : {
+                  "type" : "integer",
+                  "example" : "0"
+                }
+              },
+              "Vary" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "Origin, Accept-Encoding"
+                }
+              },
+              "Access-Control-Allow-Credentials" : {
+                "schema" : {
+                  "type" : "boolean",
+                  "example" : "true"
+                }
+              },
+              "Content-Type" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "application/json; charset=utf-8"
+                }
+              },
+              "Content-Length" : {
+                "schema" : {
+                  "type" : "integer",
+                  "example" : "83"
+                }
+              },
+              "ETag" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "W/\"53-dMBSPWo12jxwRab751dsGTuudXo\""
+                }
+              },
+              "Date" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "Tue, 15 Apr 2025 06:12:31 GMT"
+                }
+              },
+              "Connection" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "keep-alive"
+                }
+              },
+              "Keep-Alive" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "timeout=5"
+                }
+              }
+            },
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object"
+                },
+                "example" : {
+                  "success" : true,
+                  "describe" : "Contact request sent",
+                  "status_code" : 200,
+                  "content" : null
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contacts/{requesterId}/reject" : {
+      "post" : {
+        "tags" : [ "contacts" ],
+        "summary" : "/contact/:requesterId/reject",
+        "requestBody" : {
+          "content" : { }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "requesterId",
+          "in" : "path",
+          "schema" : {
+            "type" : "string"
+          },
+          "required" : true
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "headers" : {
+              "Content-Security-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+                }
+              },
+              "Cross-Origin-Opener-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "same-origin"
+                }
+              },
+              "Cross-Origin-Resource-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "same-origin"
+                }
+              },
+              "Origin-Agent-Cluster" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "?1"
+                }
+              },
+              "Referrer-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "no-referrer"
+                }
+              },
+              "Strict-Transport-Security" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "max-age=31536000; includeSubDomains"
+                }
+              },
+              "X-Content-Type-Options" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "nosniff"
+                }
+              },
+              "X-DNS-Prefetch-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "off"
+                }
+              },
+              "X-Download-Options" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "noopen"
+                }
+              },
+              "X-Frame-Options" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "SAMEORIGIN"
+                }
+              },
+              "X-Permitted-Cross-Domain-Policies" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "none"
+                }
+              },
+              "X-XSS-Protection" : {
+                "schema" : {
+                  "type" : "integer",
+                  "example" : "0"
+                }
+              },
+              "Vary" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "Origin, Accept-Encoding"
+                }
+              },
+              "Access-Control-Allow-Credentials" : {
+                "schema" : {
+                  "type" : "boolean",
+                  "example" : "true"
+                }
+              },
+              "Content-Type" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "application/json; charset=utf-8"
+                }
+              },
+              "Content-Length" : {
+                "schema" : {
+                  "type" : "integer",
+                  "example" : "83"
+                }
+              },
+              "ETag" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "W/\"53-dMBSPWo12jxwRab751dsGTuudXo\""
+                }
+              },
+              "Date" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "Tue, 15 Apr 2025 06:12:31 GMT"
+                }
+              },
+              "Connection" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "keep-alive"
+                }
+              },
+              "Keep-Alive" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "timeout=5"
+                }
+              }
+            },
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object"
+                },
+                "example" : {
+                  "success" : true,
+                  "describe" : "Contact request sent",
+                  "status_code" : 200,
+                  "content" : null
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contacts/{requesterId}/cancel" : {
+      "post" : {
+        "tags" : [ "contacts" ],
+        "summary" : "/contact/:requesterId/cancel",
+        "requestBody" : {
+          "content" : { }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "requesterId",
+          "in" : "path",
+          "schema" : {
+            "type" : "string"
+          },
+          "required" : true
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "headers" : {
+              "Content-Security-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+                }
+              },
+              "Cross-Origin-Opener-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "same-origin"
+                }
+              },
+              "Cross-Origin-Resource-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "same-origin"
+                }
+              },
+              "Origin-Agent-Cluster" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "?1"
+                }
+              },
+              "Referrer-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "no-referrer"
+                }
+              },
+              "Strict-Transport-Security" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "max-age=31536000; includeSubDomains"
+                }
+              },
+              "X-Content-Type-Options" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "nosniff"
+                }
+              },
+              "X-DNS-Prefetch-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "off"
+                }
+              },
+              "X-Download-Options" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "noopen"
+                }
+              },
+              "X-Frame-Options" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "SAMEORIGIN"
+                }
+              },
+              "X-Permitted-Cross-Domain-Policies" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "none"
+                }
+              },
+              "X-XSS-Protection" : {
+                "schema" : {
+                  "type" : "integer",
+                  "example" : "0"
+                }
+              },
+              "Vary" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "Origin, Accept-Encoding"
+                }
+              },
+              "Access-Control-Allow-Credentials" : {
+                "schema" : {
+                  "type" : "boolean",
+                  "example" : "true"
+                }
+              },
+              "Content-Type" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "application/json; charset=utf-8"
+                }
+              },
+              "Content-Length" : {
+                "schema" : {
+                  "type" : "integer",
+                  "example" : "83"
+                }
+              },
+              "ETag" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "W/\"53-dMBSPWo12jxwRab751dsGTuudXo\""
+                }
+              },
+              "Date" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "Tue, 15 Apr 2025 06:12:31 GMT"
+                }
+              },
+              "Connection" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "keep-alive"
+                }
+              },
+              "Keep-Alive" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "timeout=5"
+                }
+              }
+            },
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object"
+                },
+                "example" : {
+                  "success" : true,
+                  "describe" : "Contact request sent",
+                  "status_code" : 200,
+                  "content" : null
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ws/constants" : {
+      "get" : {
+        "tags" : [ "socket" ],
+        "summary" : "/ws/constants",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/conversations/all" : {
+      "get" : {
+        "tags" : [ "conversations" ],
+        "summary" : "conversations/all",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/conversations/{id}" : {
+      "get" : {
+        "tags" : [ "conversations" ],
+        "summary" : "conversations/:id",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "schema" : {
+            "type" : "string"
+          },
+          "required" : true,
+          "example" : "68035af8e921b80839b9b478"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/messages/{conversationId}" : {
+      "get" : {
+        "tags" : [ "messages" ],
+        "summary" : "messages/:conversationId",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "conversationId",
+          "in" : "path",
+          "schema" : {
+            "type" : "string"
+          },
+          "required" : true,
+          "example" : "6803133d1af9abb972f2718f"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/media/one-attachment" : {
+      "get" : {
+        "tags" : [ "media" ],
+        "summary" : "media/one-attachment",
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/media/multi-attachments" : {
+      "get" : {
+        "tags" : [ "media" ],
+        "summary" : "media/multi-attachments",
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    }
+  }
 }
