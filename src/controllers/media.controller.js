@@ -1,6 +1,7 @@
 import StatusConstant from "../constants/status.constant.js";
 import ResponseUtil from "../utils/response.util.js";
 import repos from "../repos/index.js";
+import path from "path";
 
 const MediaController = {
     async uploadFile(req, res) {
@@ -65,6 +66,62 @@ const MediaController = {
             console.error("Error uploading file:", error);
             return res.status(StatusConstant.INTERNAL_SERVER_ERROR).json(
                 ResponseUtil.serverErrorResponse("Server error while uploading files")
+            );
+        }
+    },
+
+    async downloadFileByUrl(req, res) {
+        try {
+            const { url } = req.body;
+
+            if (!url) {
+                return res.status(StatusConstant.BAD_REQUEST).json(
+                    ResponseUtil.badRequestResponse("File URL is required")
+                );
+            }
+
+            // Trích xuất key từ URL
+            const key = await repos.s3.extractKeyFromUrl(url);
+
+            if (!key) {
+                return res.status(StatusConstant.BAD_REQUEST).json(
+                    ResponseUtil.badRequestResponse("Invalid file URL format")
+                );
+            }
+
+            // Kiểm tra file có tồn tại không
+            const fileExists = await repos.s3.checkFileExists(key);
+
+            if (!fileExists) {
+                return res.status(StatusConstant.NOT_FOUND).json(
+                    ResponseUtil.notFoundResponse("File not found")
+                );
+            }
+
+            // Get file details
+            const fileInfo = await repos.s3.getFileInfo(key);
+
+            // Download the file
+            const fileBuffer = await repos.s3.downloadFile(key);
+
+            if (!fileBuffer) {
+                return res.status(StatusConstant.INTERNAL_SERVER_ERROR).json(
+                    ResponseUtil.serverErrorResponse("Error downloading file from server")
+                );
+            }
+
+            // Set response headers
+            res.setHeader('Content-Type', fileInfo.ContentType || 'application/octet-stream');
+            res.setHeader('Content-Disposition', `attachment; filename="${fileInfo.Metadata.originalName || path.basename(key)}"`);
+            res.setHeader('Content-Length', fileInfo.ContentLength || fileBuffer.length);
+
+            // Send file buffer
+            res.send(fileBuffer);
+
+        } catch (error) {
+            console.error("Error downloading file by URL:", error);
+            return res.status(StatusConstant.INTERNAL_SERVER_ERROR).json(
+                ResponseUtil.serverErrorResponse("Server error while downloading file")
             );
         }
     }

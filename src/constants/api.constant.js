@@ -369,6 +369,12 @@ const ApiConstant = {
             path: '/multi-attachments',
             method: 'post',
             description: 'Tải lên tối đa 5 files'
+        },
+        // GET /media/download-by-url - Tải tệp về bằng url
+        DOWNLOAD_BY_URL: {
+            path: '/download-by-url',
+            method: 'get',
+            description: 'Tải tệp về bằng url'
         }
     },
 

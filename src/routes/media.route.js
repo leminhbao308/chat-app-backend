@@ -30,4 +30,15 @@ MediaRouter.post(
     controllers.media.uploadFiles
 );
 
+/**
+ * @route   GET /media/download-by-url
+ * @desc    Tải tệp về bằng url
+ * @access  Private
+ */
+MediaRouter.get(
+    ApiConstant.MEDIA.DOWNLOAD_BY_URL.path,
+    authMiddleware,
+    controllers.media.downloadFileByUrl
+);
+
 export default MediaRouter;

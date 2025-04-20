@@ -422,6 +422,34 @@ class S3Helper {
 
         return `${random}-${timestamp}-${path.basename(originName)}`;
     }
+
+    /**
+     * Trích xuất key từ URL của S3
+     * @param {string} url URL của file trên S3
+     * @returns {string|null} Key của file hoặc null nếu không thể trích xuất
+     */
+    extractKeyFromUrl(url) {
+        try {
+            // Đối với public URL
+            const bucketName = S3Constant.DEFAULT_BUCKET;
+            const region = S3Constant.REGION;
+            const publicUrlPattern = new RegExp(`https://${bucketName}.s3.${region}.amazonaws.com/(.+)`);
+
+            // Đối với signed URL
+            const signedUrlPattern = new RegExp(`https://${bucketName}.s3.${region}.amazonaws.com/(.+?)\\?`);
+
+            let match = url.match(publicUrlPattern) || url.match(signedUrlPattern);
+
+            if (match && match[1]) {
+                return decodeURIComponent(match[1]);
+            }
+
+            return null;
+        } catch (error) {
+            console.error("Error extracting key from URL:", error);
+            return null;
+        }
+    }
 }
 
 // Singleton instance

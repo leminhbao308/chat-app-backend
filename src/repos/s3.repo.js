@@ -58,6 +58,76 @@ const S3Repo = {
             return null;
         }
     },
+
+    downloadFile: async (key) => {
+        try {
+            // Parse key to determine folder and filename
+            return await s3Helper.downloadFile(
+                S3Constant.DEFAULT_BUCKET,
+                key
+            );
+        } catch (err) {
+            console.error("Error downloading file:", err);
+            return null;
+        }
+    },
+
+    checkFileExists: async (key) => {
+        try {
+            return await s3Helper.fileExists(
+                S3Constant.DEFAULT_BUCKET,
+                key
+            );
+        } catch (err) {
+            console.error("Error checking file existence:", err);
+            return false;
+        }
+    },
+
+    getFileInfo: async (key) => {
+        try {
+            return await s3Helper.getFileInfo(
+                S3Constant.DEFAULT_BUCKET,
+                key
+            );
+        } catch (err) {
+            console.error("Error getting file info:", err);
+            return null;
+        }
+    },
+
+    getSignedUrl: async (key, expiresIn = 3600) => {
+        try {
+            return await s3Helper.getSignedUrl(
+                S3Constant.DEFAULT_BUCKET,
+                key,
+                expiresIn
+            );
+        } catch (err) {
+            console.error("Error generating signed URL:", err);
+            return null;
+        }
+    },
+
+    extractKeyFromUrl: async (url) => {
+        return s3Helper.extractKeyFromUrl(url);
+    },
+
+    downloadFileByUrl: async (url) => {
+        try {
+            const key = s3Helper.extractKeyFromUrl(url);
+
+            if (!key) {
+                console.error("Could not extract key from URL:", url);
+                return null;
+            }
+
+            return await S3Repo.downloadFile(key);
+        } catch (err) {
+            console.error("Error downloading file by URL:", err);
+            return null;
+        }
+    }
 }
 
 export default S3Repo
