@@ -8,7 +8,7 @@ const conversationController = {
     async createConversation(req, res) {
         try {
             const userId = req.user.user_id;
-            const {participants} = req.body;
+            const { participants, group_name } = req.body;
 
             if (!participants || !Array.isArray(participants)) {
                 return res.status(StatusConstant.BAD_REQUEST).json(
@@ -21,59 +21,46 @@ const conversationController = {
 
             // Kiểm tra xem tất cả người tham gia có tồn tại không
             for (const participantId of allParticipants) {
-                const isUserExisted = await repos.auth.isUserExisting(participantId)
+                const isUserExisted = await repos.auth.isUserExisting(participantId);
 
                 if (!isUserExisted) {
-                    return res.status(404).json({
-                        message: `User with ID ${participantId} does not exist`
-                    });
+                    return res.status(StatusConstant.NOT_FOUND).json(
+                        ResponseUtils.notFoundResponse(`User with ID ${participantId} does not exist`)
+                    );
                 }
             }
 
-            // Kiểm tra xem đã có conversation giữa các participants này chưa (cho 1-1 conversation)
+            let conversation;
+
+            // Quyết định loại conversation dựa trên số lượng người tham gia
             if (allParticipants.length === 2) {
-                const existingConversation = await mongoHelper.findOne(
-                    DatabaseConstant.COLLECTIONS.CONVERSATIONS,
-                    {
-                        'participants': {$all: allParticipants.map(p => mongoHelper.extractObjectId(p)), $size: 2}
-                    }
+                // Tạo conversation 1-1
+                conversation = await repos.conversation.createConversationForContacts(
+                    allParticipants[0],
+                    allParticipants[1]
                 );
-
-                if (existingConversation) {
-                    return res.status(200).json({
-                        success: true,
-                        data: existingConversation
-                    });
-                }
+            } else {
+                // Tạo conversation nhóm
+                conversation = await repos.conversation.createConversationForGroup(
+                    allParticipants,
+                    group_name || "New Group"
+                );
             }
 
-            // Tạo conversation mới
-            const newConversation = {
-                participants: allParticipants.map(p => mongoHelper.extractObjectId(p)),
-                created_at: new Date(),
-                updated_at: new Date(),
-                messages: [],
-                name: null // Có thể thêm tên cho group chat nếu cần
-            };
-
-            const result = await mongoHelper.insertOne(
-                DatabaseConstant.COLLECTIONS.CONVERSATIONS,
-                newConversation
-            );
-
-            // Lấy lại conversation vừa tạo
-            const createdConversation = await mongoHelper.findOne(
-                DatabaseConstant.COLLECTIONS.CONVERSATIONS,
-                {_id: result.insertedId}
-            );
+            if (!conversation) {
+                return res.status(StatusConstant.INTERNAL_SERVER_ERROR).json(
+                    ResponseUtils.serverErrorResponse("Failed to create conversation")
+                );
+            }
 
             res.status(StatusConstant.CREATED).json(
-                ResponseUtils.successResponse(createdConversation)
+                ResponseUtils.successResponse(conversation)
             );
+
         } catch (error) {
             console.error("Error creating conversation:", error);
             res.status(StatusConstant.INTERNAL_SERVER_ERROR).json(
-                ResponseUtils.serverErrorResponse("Failed to create conversation")
+                ResponseUtils.serverErrorResponse("An error occur while creating conversation")
             );
         }
     },

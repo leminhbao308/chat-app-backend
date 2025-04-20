@@ -79,6 +79,50 @@ const ConversationsRepo = {
         }
     },
 
+    async createConversationForGroup(userIds, groupName = "New Group") {
+        try {
+            // Validate userIds is an array with at least 3 members
+            if (!Array.isArray(userIds) || userIds.length < 3) {
+                return null;
+            }
+
+            // Get all users' information
+            const participants = [];
+            for (const userId of userIds) {
+                const user = await repos.auth.getUserById(userId);
+                if (user) {
+                    participants.push({
+                        _id: user._id,
+                        first_name: user.first_name,
+                        last_name: user.last_name,
+                        avatar_url: user.avatar_url
+                    });
+                }
+            }
+
+            // Create new group conversation
+            const newConversation = {
+                name: groupName,
+                conversation_url: process.env.DEFAULT_GROUP_THUMBNAIL_URL,
+                type: ValidationConstant.CONVERSATION_TYPE.GROUP,
+                participants: participants,
+                created_at: new Date(),
+                updated_at: new Date(),
+                messages: [],
+                pin_messages: [],
+                files: []
+            };
+
+            return await mongoHelper.insertOne(
+                DatabaseConstant.COLLECTIONS.CONVERSATIONS,
+                newConversation
+            );
+        } catch (error) {
+            console.error("Error creating conversation for group:", error);
+            return null;
+        }
+    },
+
     async isUserParticipateInConversation(conversationId, userId) {
         try {
             const result = await mongoHelper.count(
