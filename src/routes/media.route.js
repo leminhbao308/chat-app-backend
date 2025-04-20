@@ -31,11 +31,11 @@ MediaRouter.post(
 );
 
 /**
- * @route   GET /media/download-by-url
+ * @route   POST /media/download-by-url
  * @desc    Tải tệp về bằng url
  * @access  Private
  */
-MediaRouter.get(
+MediaRouter.post(
     ApiConstant.MEDIA.DOWNLOAD_BY_URL.path,
     authMiddleware,
     controllers.media.downloadFileByUrl
