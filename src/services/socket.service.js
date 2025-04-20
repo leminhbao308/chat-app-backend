@@ -92,14 +92,6 @@ class SocketService {
       await this.handleMarkMessagesRead(socket, data, userId);
     });
 
-    // Xử lý sự kiện đang gõ
-    // socket.on(SocketConstant.ON_TYPING, (data) => {
-    //     const { conversationId } = data;
-    //     socket.to(`conversation:${conversationId}`).emit('user typing', {
-    //         userId,
-    //         conversationId
-    //     });
-    // });
     socket.on(SocketConstant.ON_TYPING, (data) => {
       const { conversationId } = data;
 
@@ -115,14 +107,6 @@ class SocketService {
       });
     });
 
-    // Xử lý sự kiện dừng gõ
-    // socket.on(SocketConstant.ON_STOP_TYPING, (data) => {
-    //     const { conversationId } = data;
-    //     socket.to(`conversation:${conversationId}`).emit('user stop typing', {
-    //         userId,
-    //         conversationId
-    //     });
-    // });
     socket.on(SocketConstant.ON_STOP_TYPING, (data) => {
       const { conversationId } = data;
 
