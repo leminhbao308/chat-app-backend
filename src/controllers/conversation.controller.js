@@ -116,7 +116,7 @@ const conversationController = {
             );
 
             // Lấy thông tin unread_conversations từ user
-            const user = repos.auth.getUserById(userId);
+            const user = await repos.auth.getUserById(userId);
 
             const unreadConversations = user?.unread_conversations || [];
 
