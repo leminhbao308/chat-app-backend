@@ -109,7 +109,7 @@ const ConversationsRepo = {
                         first_name: user.first_name,
                         last_name: user.last_name,
                         avatar_url: user.avatar_url,
-                        role: GroupConstants.ROLES.MEM
+                        role: GroupConstants.ROLES.MEMBER
                     });
                 }
             }
