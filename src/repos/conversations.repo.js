@@ -82,8 +82,8 @@ const ConversationsRepo = {
 
     async createConversationForGroup(adminId, userIds, groupName = "New Group") {
         try {
-            // Validate userIds is an array with at least 3 members
-            if (!Array.isArray(userIds) || userIds.length < 3) {
+            // Validate userIds is an array with at least 2 members
+            if (!Array.isArray(userIds) || userIds.length < 2) {
                 return null;
             }
 
