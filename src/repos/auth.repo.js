@@ -5,21 +5,29 @@ const AuthRepo = {
 
     isUserExisting: async (phoneNumberOrUserId) => {
         try {
-            // Check if the input might be a user ID
-            const query = isNaN(phoneNumberOrUserId) ?
-                {$or: [{phone_number: phoneNumberOrUserId}, {_id: phoneNumberOrUserId}]} :
-                {phone_number: phoneNumberOrUserId};
+            let query;
+
+            // Nếu là ObjectId dạng chuỗi
+            if (/^[a-fA-F0-9]{24}$/.test(phoneNumberOrUserId)) {
+                query = {
+                    $or: [
+                        { phone_number: phoneNumberOrUserId },
+                        { _id: mongoHelper.extractObjectId(phoneNumberOrUserId) },
+                    ],
+                };
+            } else {
+                // Nếu là số điện thoại (không phải ObjectId)
+                query = { phone_number: phoneNumberOrUserId };
+            }
 
             const existingUser = await mongoHelper.findOne(
                 DatabaseConstant.COLLECTIONS.USERS,
                 query
             );
 
-            // Return a boolean based on whether the user exists
             return !!existingUser;
         } catch (err) {
             console.error("Error checking if user exists:", err);
-            // In case of error, assume user doesn't exist
             return false;
         }
     },
