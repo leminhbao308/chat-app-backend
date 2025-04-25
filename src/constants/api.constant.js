@@ -187,9 +187,60 @@ const ApiConstant = {
         UPDATE: {
             path: '/:id',
             method: 'post',
-            description: 'Cập nhật thông tin cuộc trò chuyện (tên, ảnh)',
-            pathWithParams: (id) => `/conversations/${id}`
+            description: 'Cập nhật thông tin cuộc trò chuyện'
         },
+        // POST /conversations/:id/add - Thêm người vào cuộc trò chuyện
+        ADD_MEMBER: {
+            path: '/:id/add',
+            method: 'post',
+            description: 'Thêm người vào cuộc trò chuyện'
+        },
+        // POST /conversations/:id/remove - Xóa người khỏi cuộc trò chuyện
+        REMOVE_MEMBER: {
+            path: '/:id/remove',
+            method: 'post',
+            description: 'Xóa người khỏi cuộc trò chuyện'
+        },
+        // POST /conversations/:id/change-role - Thay đổi role của user trong cuộc trò chuyện
+        CHANGE_ROLE: {
+            path: '/:id/change-role',
+            method: 'post',
+            description: 'Thay đổi role của user trong cuộc trò chuyện'
+        },
+        // POST /conversations/:id/update-settings - Cập nhật các cài đặt cuộc trò chuyện
+        UPDATE_SETTINGS: {
+            path: '/:id/update-settings',
+            method: 'post',
+            description: 'Cập nhật các cài đặt cuộc trò chuyện'
+        },
+        // POST /conversations/:id/leave - Rời khỏi cuộc trò chuyện
+        LEAVE_GROUP: {
+            path: '/:id/leave',
+            method: 'post',
+            description: 'Rời khỏi cuộc trò chuyện'
+        },
+        // POST /conversations/:id/dissolve-group - Giải tán cuộc trò chuyện
+        DISSOLVE_GROUP: {
+            path: '/:id/dissolve-group',
+            method: 'post',
+            description: 'Giải tán cuộc trò chuyện'
+        },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         // POST /conversations/:id/archive - Lưu trữ cuộc trò chuyện
         ARCHIVE: {
             path: '/:id/archive',

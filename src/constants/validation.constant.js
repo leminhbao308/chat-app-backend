@@ -47,8 +47,9 @@ const ValidationConstant = {
     },
 
     GROUP_ROLE: {
-        ADMIN: "",
-        MEM: ""
+        ADMIN: "admin",
+        CO_ADMIN: "co-admin",
+        MEM: "member"
     },
 
     CONTACT_NICKNAME: "nickname",
