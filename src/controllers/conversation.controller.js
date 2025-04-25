@@ -35,7 +35,7 @@ const conversationController = {
                 // Tạo conversation 1-1
                 conversation = await repos.conversation.createConversationForContacts(
                     userId,
-                    participants[1]
+                    participants[0]
                 );
             } else {
                 // Tạo conversation nhóm
