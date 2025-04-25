@@ -135,8 +135,7 @@ const ContactController = {
             const { requestId: requestReceiver } = req.params;
 
             // Lấy thông tin yêu cầu kết bạn
-            const request = repos.contact.getPendingRequest(userId, requestReceiver);
-
+            const request = await repos.contact.getPendingRequest(userId, requestReceiver);
             if (!request) {
                 return res.status(StatusConstant.NOT_FOUND).json(
                     ResponseUtils.notFoundResponse("Contact request not found")
