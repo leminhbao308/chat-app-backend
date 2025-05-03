@@ -19,18 +19,24 @@ class ProfileSocketService extends BaseSocketService {
 
     broadcastUserInfo(userId, userData) {
         // Gửi thông tin cập nhật user cho tất cả users
-        this.broadcastToAllUsers("emit user info updated", {
-            user_id: userId,
-            user_data: userData,
-        });
+        this.broadcastToAllUsers(
+            SocketConstant.PROFILE.EMIT_INFO_UPDATED,
+            {
+                user_id: userId,
+                user_data: userData,
+            }
+        );
     }
 
     broadcastAvatar(userId, avatarUrl) {
         // Gửi thông tin avatar mới cho tất cả users
-        this.broadcastToAllUsers("avatar updated", {
-            user_id: userId,
-            avatar_url: avatarUrl,
-        });
+        this.broadcastToAllUsers(
+            SocketConstant.PROFILE.ON_AVATAR_UPDATED,
+            {
+                user_id: userId,
+                avatar_url: avatarUrl,
+            }
+        );
     }
 }
 

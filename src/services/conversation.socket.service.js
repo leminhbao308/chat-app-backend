@@ -20,12 +20,10 @@ class ConversationSocketService extends BaseSocketService {
 
     joinConversation(socket, conversationId) {
         socket.join(`conversation:${conversationId}`);
-        console.log(`User ${socket.user.user_id} joined conversation ${conversationId}`);
     }
 
     leaveConversation(socket, conversationId) {
         socket.leave(`conversation:${conversationId}`);
-        console.log(`User ${socket.user.user_id} left conversation ${conversationId}`);
     }
 }
 

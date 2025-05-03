@@ -1,4 +1,5 @@
 import BaseSocketService from "./base.socket.service.js";
+import SocketConstant from "../constants/socket.constant.js";
 
 class PresenceSocketService extends BaseSocketService {
     constructor(io) {
@@ -10,9 +11,10 @@ class PresenceSocketService extends BaseSocketService {
         const onlineUsers = this.getOnlineUsers();
 
         // Gửi thông tin trạng thái online cho tất cả users
-        this.broadcastToAllUsers("online users", {
-            online_users: onlineUsers,
-        });
+        this.broadcastToAllUsers(
+            SocketConstant.PRESENCE.ON_ONLINE,
+            {online_users: onlineUsers}
+        );
     }
 
     registerSocketEvents(socket, userId) {

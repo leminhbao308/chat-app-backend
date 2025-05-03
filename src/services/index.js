@@ -13,33 +13,31 @@ class SocketServiceManager {
     constructor(io) {
         this.io = io;
 
-        // Initialize services that don't have dependencies
+        // Khởi tạo các service
         this.baseService = new BaseSocketService(io);
         this.presenceService = new PresenceSocketService(io);
         this.notificationService = new NotificationSocketService(io);
         this.profileService = new ProfileSocketService(io);
 
-        // Initialize services with dependencies
         this.messageService = new MessageSocketService(io);
         this.conversationService = new ConversationSocketService(io);
         this.contactService = new ContactSocketService(io);
 
-        // Initialize the connection service last, with dependencies
+        // Khởi tạo connection service, sử dụng presence và noti service
         this.connectionService = new ConnectionSocketService(
             io,
             this.presenceService,
             this.notificationService
         );
 
-        // Setup socket IO with all services
+        // Thực hiện setup socket io
         this.setupSocketIO();
     }
 
     setupSocketIO() {
-        // Setup authentication middleware
+        // Sử dụng Auth middileware để tận dụng access token cho việc xác thực socket
         this.baseService.setupAuth();
 
-        // Setup connection handlers
         this.io.on(SocketConstant.CONNECT, (socket) => {
             this.handleConnection(socket);
         });
@@ -47,28 +45,25 @@ class SocketServiceManager {
 
     handleConnection(socket) {
         const userId = socket.user.user_id;
-        console.log(`User ${userId} connected`);
 
-        // Store socket connection
+        // Thiết lập socket cho user id tương ứng
         this.baseService.addSocketConnection(userId, socket);
 
-        // Send online status to all users
+        // Gửi trạng thái online đến các client khác
         this.presenceService.broadcastOnlineStatus();
 
-        // Send unread messages count
+        // Gửi thông báo về số tin nhắn chưa đọc
         this.notificationService.sendUnreadMessagesCount(userId);
 
-        // Register events for all services
+        // Đăng ký sự kiện cho các event socket
         this.registerAllSocketEvents(socket, userId);
 
-        // Handle disconnection
         socket.on(SocketConstant.DISCONNECT, () => {
             this.handleDisconnection(socket, userId);
         });
     }
 
     registerAllSocketEvents(socket, userId) {
-        // Register events for each service
         this.messageService.registerSocketEvents(socket, userId);
         this.conversationService.registerSocketEvents(socket, userId);
         this.contactService.registerSocketEvents(socket, userId);
@@ -78,19 +73,13 @@ class SocketServiceManager {
     }
 
     handleDisconnection(socket, userId) {
-        console.log(`User ${userId} disconnected`);
-
-        // Remove socket from connections
         const isCompletelyOffline = this.baseService.removeSocketConnection(userId, socket);
 
-        // If user is completely offline (no more connections)
         if (isCompletelyOffline) {
-            // Broadcast updated online status
             this.presenceService.broadcastOnlineStatus();
         }
     }
 
-    // Getter to access the list of connected users
     getConnectedUsers() {
         return this.baseService.connectedUsers;
     }

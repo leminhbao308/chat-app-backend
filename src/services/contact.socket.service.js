@@ -1,4 +1,5 @@
 import BaseSocketService from "./base.socket.service.js";
+import SocketConstant from "../constants/socket.constant.js";
 
 class ContactSocketService extends BaseSocketService {
     constructor(io) {
@@ -7,12 +8,12 @@ class ContactSocketService extends BaseSocketService {
 
     registerSocketEvents(socket, userId) {
         // Handle contact request sent event
-        socket.on("contact request sent", (data) => {
+        socket.on(SocketConstant.CONTACT.ON_REQUEST_SENT, (data) => {
             this.handleContactRequestSent(userId, data);
         });
 
         // Handle contact request accepted event
-        socket.on("contact request accepted", (data) => {
+        socket.on(SocketConstant.CONTACT.ON_REQUEST_ACCEPTED, (data) => {
             this.handleContactRequestAccepted(userId, data);
         });
     }
@@ -23,7 +24,7 @@ class ContactSocketService extends BaseSocketService {
         // Check if receiver is online before sending notification
         if (this.isUserOnline(receiverId)) {
             // Send notification to receiver if they are online
-            this.emitToUser(receiverId, "new contact request", {
+            this.emitToUser(receiverId, SocketConstant.CONTACT.EMIT_NEW_CONTACT_REQUEST, {
                 sender_id: senderId,
                 timestamp: new Date()
             });
@@ -34,7 +35,7 @@ class ContactSocketService extends BaseSocketService {
         const { senderId } = data;
 
         // Send notification to the original request sender if they are online
-        this.emitToUser(senderId, "contact request accepted", {
+        this.emitToUser(senderId, SocketConstant.CONTACT.EMIT_NEW_CONTACT_ACCEPTED, {
             accepter_id: accepterId,
             timestamp: new Date()
         });

@@ -1,6 +1,7 @@
 import BaseSocketService from "./base.socket.service.js";
 import mongoHelper from "../helper/mongo.helper.js";
 import DatabaseConstant from "../constants/database.constant.js";
+import SocketConstant from "../constants/socket.constant.js";
 
 class NotificationSocketService extends BaseSocketService {
     constructor(io) {
@@ -16,7 +17,7 @@ class NotificationSocketService extends BaseSocketService {
             // Lấy thông tin user bao gồm unread_conversations
             const user = await mongoHelper.findOne(
                 DatabaseConstant.COLLECTIONS.USERS,
-                { _id: mongoHelper.extractObjectId(userId) }
+                {_id: mongoHelper.extractObjectId(userId)}
             );
 
             if (!user || !this.isUserOnline(userId)) return;
@@ -24,9 +25,11 @@ class NotificationSocketService extends BaseSocketService {
             const unreadConversations = user.unread_conversations || [];
 
             // Gửi thông tin các cuộc trò chuyện chưa đọc cho user
-            this.emitToUser(userId, "unread messages", {
-                unread_conversations: unreadConversations,
-            });
+            this.emitToUser(
+                userId,
+                SocketConstant.CONVERSATION.ON_UNREAD_MESSAGE,
+                {unread_conversations: unreadConversations                }
+            );
         } catch (error) {
             console.error("Error sending unread messages count:", error);
         }

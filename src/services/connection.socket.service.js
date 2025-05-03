@@ -18,7 +18,6 @@ class ConnectionSocketService extends BaseSocketService {
 
     handleConnection(socket) {
         const userId = socket.user.user_id;
-        console.log(`User ${userId} connected`);
 
         // Lưu socket vào danh sách kết nối
         this.addSocketConnection(userId, socket);
@@ -45,8 +44,6 @@ class ConnectionSocketService extends BaseSocketService {
     }
 
     handleDisconnection(socket, userId) {
-        console.log(`User ${userId} disconnected`);
-
         // Xóa socket khỏi danh sách kết nối
         const isCompletelyOffline = this.removeSocketConnection(userId, socket);
 

@@ -22,8 +22,46 @@ const SocketConstant = {
     ON_MESSAGE_DELETE: 'delete message',
     ON_MESSAGE_REVOKE: 'revoke message',
     ON_MARK_MESSAGES_READ: "mark messages read",
-    ON_TYPING: "typing",
-    ON_STOP_TYPING: "stop typing",
+
+    PRESENCE: {
+        ON_ONLINE: "online users",
+    },
+
+    CONVERSATION: {
+        ON_NEW_MESSAGE: "new message",
+        ON_UNREAD_MESSAGE: "unread messages",
+        ON_NEW_NOTIFICATION: "message notification",
+    },
+
+    MESSAGE: {
+        // message send events
+        ON_SEND: "send message",
+        ON_ERROR: "message error",
+
+
+        // message delete events
+        ON_DELETE: 'delete message',
+        ON_DELETE_SUCCESS: "message deleted",
+        ON_DELETE_ERROR: "message delete error",
+
+        // message revoke events
+        ON_REVOKE: 'revoke message',
+        ON_REVOKE_SUCCESS: "message revoked",
+        ON_REVOKE_ERROR: "message revoke error",
+
+        // other message events
+        ON_MARK_AS_READ: "mark messages read",
+        ON_READ_SUCCESS: "messages read",
+        ON_READ_ERROR: "read status error",
+
+    },
+
+    TYPING: {
+        ON_START: "typing",
+        ON_STOP: "stop typing",
+        EMIT_STAR: "user typing",
+        EMIT_STOP: "user stop typing",
+    },
 }
 
 export default SocketConstant

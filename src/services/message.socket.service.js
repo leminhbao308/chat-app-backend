@@ -10,39 +10,33 @@ class MessageSocketService extends BaseSocketService {
     }
 
     registerSocketEvents(socket, userId) {
-        // Xử lý sự kiện gửi tin nhắn
-        socket.on(SocketConstant.ON_MESSAGE_SEND, async (messageData) => {
+        socket.on(SocketConstant.MESSAGE.ON_SEND, async (messageData) => {
             await this.handleNewMessage(socket, messageData, userId);
         });
 
-        // Xử lý sự kiện xóa tin nhắn
-        socket.on(SocketConstant.ON_MESSAGE_DELETE, async (data) => {
+        socket.on(SocketConstant.MESSAGE.ON_DELETE, async (data) => {
             await this.handleMessageDelete(socket, data, userId);
         });
 
-        // Xử lý sự kiện thu hồi tin nhắn
-        socket.on(SocketConstant.ON_MESSAGE_REVOKE, async (data) => {
+        socket.on(SocketConstant.MESSAGE.ON_REVOKE, async (data) => {
             await this.handleMessageRevoke(socket, data, userId);
         });
 
-        // Xử lý sự kiện đánh dấu tin nhắn đã đọc
-        socket.on(SocketConstant.ON_MARK_MESSAGES_READ, async (data) => {
+        socket.on(SocketConstant.MESSAGE.ON_MARK_AS_READ, async (data) => {
             await this.handleMarkMessagesRead(socket, data, userId);
         });
 
-        // Xử lý sự kiện typing
-        socket.on(SocketConstant.ON_TYPING, (data) => {
+        socket.on(SocketConstant.TYPING.ON_START, (data) => {
             this.handleTyping(socket, data, userId);
         });
 
-        // Xử lý sự kiện stop typing
-        socket.on(SocketConstant.ON_STOP_TYPING, (data) => {
+        socket.on(SocketConstant.TYPING.ON_STOP, (data) => {
             this.handleStopTyping(socket, data, userId);
         });
     }
 
     handleTyping(socket, data, userId) {
-        const { conversationId } = data;
+        const {conversationId} = data;
 
         const typingUser = {
             id: userId,
@@ -50,14 +44,16 @@ class MessageSocketService extends BaseSocketService {
             name: socket.user.first_name || socket.user.name || "Unknown",
         };
 
-        socket.to(`conversation:${conversationId}`).emit("user typing", {
-            conversationId,
-            user: typingUser,
-        });
+        socket
+            .to(`conversation:${conversationId}`)
+            .emit(SocketConstant.TYPING.EMIT_STAR, {
+                conversationId,
+                user: typingUser,
+            });
     }
 
     handleStopTyping(socket, data, userId) {
-        const { conversationId } = data;
+        const {conversationId} = data;
 
         const typingUser = {
             id: userId,
@@ -65,15 +61,17 @@ class MessageSocketService extends BaseSocketService {
             name: socket.user.first_name || socket.user.name || "Unknown",
         };
 
-        socket.to(`conversation:${conversationId}`).emit("user stop typing", {
-            conversationId,
-            user: typingUser,
-        });
+        socket
+            .to(`conversation:${conversationId}`)
+            .emit(SocketConstant.TYPING.EMIT_STOP, {
+                conversationId,
+                user: typingUser,
+            });
     }
 
     async handleNewMessage(socket, messageData, senderId) {
         try {
-            const { conversationId, content, reply_to, files } = messageData;
+            const {conversationId, content, reply_to, files} = messageData;
 
             // Kiểm tra người gửi có thuộc conversation không
             const isParticipant =
@@ -83,7 +81,7 @@ class MessageSocketService extends BaseSocketService {
                 );
 
             if (!isParticipant) {
-                socket.emit("message error", {
+                socket.emit(SocketConstant.MESSAGE.ON_ERROR, {
                     error: "You are not a participant of this conversation",
                 });
                 return;
@@ -112,9 +110,9 @@ class MessageSocketService extends BaseSocketService {
             // Cập nhật conversation với tin nhắn mới
             await mongoHelper.updateOne(
                 DatabaseConstant.COLLECTIONS.CONVERSATIONS,
-                { _id: mongoHelper.extractObjectId(conversationId) },
+                {_id: mongoHelper.extractObjectId(conversationId)},
                 {
-                    $push: { messages: newMessage },
+                    $push: {messages: newMessage},
                     $set: {
                         last_message: {
                             content:
@@ -132,7 +130,7 @@ class MessageSocketService extends BaseSocketService {
 
             const conversation = await mongoHelper.findOne(
                 DatabaseConstant.COLLECTIONS.CONVERSATIONS,
-                { _id: mongoHelper.extractObjectId(conversationId) }
+                {_id: mongoHelper.extractObjectId(conversationId)}
             );
 
             // Lấy danh sách người nhận (ngoại trừ người gửi)
@@ -147,7 +145,7 @@ class MessageSocketService extends BaseSocketService {
             for (const receiver of receivers) {
                 await mongoHelper.updateOne(
                     DatabaseConstant.COLLECTIONS.USERS,
-                    { _id: mongoHelper.extractObjectId(receiver._id) },
+                    {_id: mongoHelper.extractObjectId(receiver._id)},
                     {
                         $pull: {
                             unread_conversations: {
@@ -159,7 +157,7 @@ class MessageSocketService extends BaseSocketService {
 
                 await mongoHelper.updateOne(
                     DatabaseConstant.COLLECTIONS.USERS,
-                    { _id: mongoHelper.extractObjectId(receiver._id) },
+                    {_id: mongoHelper.extractObjectId(receiver._id)},
                     {
                         $push: {
                             unread_conversations: {
@@ -173,10 +171,12 @@ class MessageSocketService extends BaseSocketService {
             }
 
             // Gửi tin nhắn tới tất cả người trong conversation
-            this.io.to(`conversation:${conversationId}`).emit("new message", {
-                conversation_id: conversationId,
-                message: newMessage,
-            });
+            this.io
+                .to(`conversation:${conversationId}`)
+                .emit(SocketConstant.CONVERSATION.ON_NEW_MESSAGE, {
+                    conversation_id: conversationId,
+                    message: newMessage,
+                });
 
             // Gửi thông báo cho những người nhận mà không có trong phòng
             for (const receiver of receivers) {
@@ -187,7 +187,7 @@ class MessageSocketService extends BaseSocketService {
                     for (const receiverSocket of receiverSockets) {
                         // Kiểm tra xem socket này có trong phòng không
                         if (!receiverSocket.rooms.has(`conversation:${conversationId}`)) {
-                            receiverSocket.emit("message notification", {
+                            receiverSocket.emit(SocketConstant.CONVERSATION.ON_NEW_NOTIFICATION, {
                                 conversation_id: conversationId,
                                 sender_id: senderId,
                                 content:
@@ -202,32 +202,37 @@ class MessageSocketService extends BaseSocketService {
             }
         } catch (error) {
             console.error("Error handling new message:", error);
-            socket.emit("message error", { error: "Failed to send message" });
+            socket.emit(
+                SocketConstant.MESSAGE.ON_ERROR,
+                {error: "Failed to send message"}
+            );
         }
     }
 
     async handleMessageDelete(socket, data, userId) {
         try {
-            const { conversationId, messageId } = data;
+            const {conversationId, messageId} = data;
 
             // Validate input
             if (!conversationId || !messageId) {
-                socket.emit("message delete error", {
-                    error: "Missing required parameters",
-                });
+                socket.emit(
+                    SocketConstant.MESSAGE.ON_DELETE_ERROR,
+                    {error: "Missing required parameters",}
+                );
                 return;
             }
 
             // Check if the conversation exists
             const conversation = await mongoHelper.findOne(
                 DatabaseConstant.COLLECTIONS.CONVERSATIONS,
-                { _id: mongoHelper.extractObjectId(conversationId) }
+                {_id: mongoHelper.extractObjectId(conversationId)}
             );
 
             if (!conversation) {
-                socket.emit("message delete error", {
-                    error: "Conversation not found",
-                });
+                socket.emit(
+                    SocketConstant.MESSAGE.ON_DELETE_ERROR,
+                    {error: "Conversation not found",}
+                );
                 return;
             }
 
@@ -237,7 +242,10 @@ class MessageSocketService extends BaseSocketService {
             );
 
             if (messageIndex === -1) {
-                socket.emit("message delete error", { error: "Message not found" });
+                socket.emit(
+                    SocketConstant.MESSAGE.ON_DELETE_ERROR,
+                    {error: "Message not found"}
+                );
                 return;
             }
 
@@ -248,9 +256,10 @@ class MessageSocketService extends BaseSocketService {
                 message.deleted_by &&
                 message.deleted_by.some((id) => id.toString() === userId.toString())
             ) {
-                socket.emit("message delete error", {
-                    error: "You have already deleted this message",
-                });
+                socket.emit(
+                    SocketConstant.MESSAGE.ON_DELETE_ERROR,
+                    {error: "You have already deleted this message"}
+                );
                 return;
             }
 
@@ -269,41 +278,47 @@ class MessageSocketService extends BaseSocketService {
             );
 
             // Notify only the user who deleted the message
-            socket.emit("message deleted", {
-                conversation_id: conversationId,
-                message_id: messageId,
-                deleted_by: userId,
-            });
+            socket.emit(
+                SocketConstant.MESSAGE.ON_DELETE_SUCCESS,
+                {
+                    conversation_id: conversationId,
+                    message_id: messageId,
+                    deleted_by: userId,
+                }
+            );
         } catch (error) {
             console.error("Error deleting message:", error);
-            socket.emit("message delete error", {
-                error: "Failed to delete message",
-            });
+            socket.emit(
+                SocketConstant.MESSAGE.ON_DELETE_SUCCESS,
+                {error: "Failed to delete message"}
+            );
         }
     }
 
     async handleMessageRevoke(socket, data, userId) {
         try {
-            const { conversationId, messageId } = data;
+            const {conversationId, messageId} = data;
 
             // Validate input
             if (!conversationId || !messageId) {
-                socket.emit("message revoke error", {
-                    error: "Missing required parameters",
-                });
+                socket.emit(
+                    SocketConstant.MESSAGE.ON_REVOKE_ERROR,
+                    {error: "Missing required parameters"}
+                );
                 return;
             }
 
             // Check if the conversation exists
             const conversation = await mongoHelper.findOne(
                 DatabaseConstant.COLLECTIONS.CONVERSATIONS,
-                { _id: mongoHelper.extractObjectId(conversationId) }
+                {_id: mongoHelper.extractObjectId(conversationId)}
             );
 
             if (!conversation) {
-                socket.emit("message revoke error", {
-                    error: "Conversation not found",
-                });
+                socket.emit(
+                    SocketConstant.MESSAGE.ON_REVOKE_ERROR,
+                    {error: "Conversation not found"}
+                );
                 return;
             }
 
@@ -313,7 +328,10 @@ class MessageSocketService extends BaseSocketService {
             );
 
             if (messageIndex === -1) {
-                socket.emit("message revoke error", { error: "Message not found" });
+                socket.emit(
+                    SocketConstant.MESSAGE.ON_REVOKE_ERROR,
+                    {error: "Message not found"}
+                );
                 return;
             }
 
@@ -321,17 +339,19 @@ class MessageSocketService extends BaseSocketService {
 
             // Check if the user is the sender of the message
             if (message.sender_id.toString() !== userId.toString()) {
-                socket.emit("message revoke error", {
-                    error: "You can only revoke your own messages",
-                });
+                socket.emit(
+                    SocketConstant.MESSAGE.ON_REVOKE_ERROR,
+                    {error: "You can only revoke your own messages"}
+                );
                 return;
             }
 
             // Check if the message is already revoked
             if (message.is_revoked) {
-                socket.emit("message revoke error", {
-                    error: "This message has already been revoked",
-                });
+                socket.emit(
+                    SocketConstant.MESSAGE.ON_REVOKE_ERROR,
+                    {error: "This message has already been revoked"}
+                );
                 return;
             }
 
@@ -343,7 +363,7 @@ class MessageSocketService extends BaseSocketService {
                     "messages._id": mongoHelper.extractObjectId(messageId),
                 },
                 {
-                    $set: { "messages.$.is_revoked": true },
+                    $set: {"messages.$.is_revoked": true},
                 }
             );
 
@@ -355,7 +375,7 @@ class MessageSocketService extends BaseSocketService {
             ) {
                 await mongoHelper.updateOne(
                     DatabaseConstant.COLLECTIONS.CONVERSATIONS,
-                    { _id: mongoHelper.extractObjectId(conversationId) },
+                    {_id: mongoHelper.extractObjectId(conversationId)},
                     {
                         $set: {
                             "last_message.content": "This message was revoked",
@@ -365,31 +385,40 @@ class MessageSocketService extends BaseSocketService {
             }
 
             // Notify all participants in the conversation about the revoked message
-            this.io.to(`conversation:${conversationId}`).emit("message revoked", {
-                conversation_id: conversationId,
-                message_id: messageId,
-                revoked_by: userId,
-            });
+            this.io
+                .to(`conversation:${conversationId}`)
+                .emit(
+                    SocketConstant.MESSAGE.ON_REVOKE_SUCCESS,
+                    {
+                        conversation_id: conversationId,
+                        message_id: messageId,
+                        revoked_by: userId,
+                    }
+                );
         } catch (error) {
             console.error("Error revoking message:", error);
-            socket.emit("message revoke error", {
-                error: "Failed to revoke message",
-            });
+            socket.emit(
+                SocketConstant.MESSAGE.ON_REVOKE_ERROR,
+                {error: "Failed to revoke message"}
+            );
         }
     }
 
     async handleMarkMessagesRead(socket, data, userId) {
         try {
-            const { conversationId } = data;
+            const {conversationId} = data;
 
             // Kiểm tra conversation có tồn tại không
             const conversation = await mongoHelper.findOne(
                 DatabaseConstant.COLLECTIONS.CONVERSATIONS,
-                { _id: mongoHelper.extractObjectId(conversationId) }
+                {_id: mongoHelper.extractObjectId(conversationId)}
             );
 
             if (!conversation) {
-                socket.emit("read status error", { error: "Conversation not found" });
+                socket.emit(
+                    SocketConstant.MESSAGE.ON_READ_ERROR,
+                    {error: "Conversation not found"}
+                );
                 return;
             }
 
@@ -399,9 +428,10 @@ class MessageSocketService extends BaseSocketService {
             );
 
             if (!isParticipant) {
-                socket.emit("read status error", {
-                    error: "You are not a participant of this conversation",
-                });
+                socket.emit(
+                    SocketConstant.MESSAGE.ON_READ_ERROR,
+                    {error: "You are not a participant of this conversation"}
+                );
                 return;
             }
 
@@ -412,8 +442,8 @@ class MessageSocketService extends BaseSocketService {
                     _id: mongoHelper.extractObjectId(conversationId),
                     messages: {
                         $elemMatch: {
-                            sender_id: { $ne: mongoHelper.extractObjectId(userId) },
-                            "read_by.user_id": { $ne: mongoHelper.extractObjectId(userId) },
+                            sender_id: {$ne: mongoHelper.extractObjectId(userId)},
+                            "read_by.user_id": {$ne: mongoHelper.extractObjectId(userId)},
                         },
                     },
                 },
@@ -428,7 +458,7 @@ class MessageSocketService extends BaseSocketService {
                 {
                     arrayFilters: [
                         {
-                            "elem.sender_id": { $ne: mongoHelper.extractObjectId(userId) },
+                            "elem.sender_id": {$ne: mongoHelper.extractObjectId(userId)},
                             "elem.read_by.user_id": {
                                 $ne: mongoHelper.extractObjectId(userId),
                             },
@@ -441,7 +471,7 @@ class MessageSocketService extends BaseSocketService {
             // Xóa conversation khỏi danh sách unread_conversations của user
             await mongoHelper.updateOne(
                 DatabaseConstant.COLLECTIONS.USERS,
-                { _id: mongoHelper.extractObjectId(userId) },
+                {_id: mongoHelper.extractObjectId(userId)},
                 {
                     $pull: {
                         unread_conversations: {
@@ -452,16 +482,22 @@ class MessageSocketService extends BaseSocketService {
             );
 
             // Thông báo cho những người trong cuộc trò chuyện về việc tin nhắn đã được đọc
-            this.io.to(`conversation:${conversationId}`).emit("messages read", {
-                conversation_id: conversationId,
-                user_id: userId,
-                read_at: new Date(),
-            });
+            this.io
+                .to(`conversation:${conversationId}`)
+                .emit(
+                    SocketConstant.MESSAGE.ON_READ_SUCCESS,
+                    {
+                        conversation_id: conversationId,
+                        user_id: userId,
+                        read_at: new Date(),
+                    }
+                );
         } catch (error) {
             console.error("Error marking messages as read:", error);
-            socket.emit("read status error", {
-                error: "Failed to mark messages as read",
-            });
+            socket.emit(
+                SocketConstant.MESSAGE.ON_READ_ERROR,
+                {error: "Failed to mark messages as read"}
+            );
         }
     }
 }
