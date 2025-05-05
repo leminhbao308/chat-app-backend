@@ -18,11 +18,11 @@ import * as http from "node:http";
 import {Server} from "socket.io";
 import ConversationRouter from "./routes/conversations.route.js";
 import MessageRouter from "./routes/messages.route.js";
-import SocketService from "./services/socket.service.js";
 import SocketRouter from "./routes/socket.route.js";
 import ContactRouter from "./routes/contacts.route.js";
 import SwaggerRouter from "./routes/swagger.route.js";
 import MediaRouter from "./routes/media.route.js";
+import initializeSocketServices from "./services/index.js";
 
 class App {
     constructor() {
@@ -34,7 +34,7 @@ class App {
                 methods: ["GET", "POST"]
             }
         });
-        this.socketService = null; // Will be initialized after connections are established
+        this.socketServiceManager = null; // Will be initialized after connections are established
         this.initializeMiddlewares();
         this.connectServices()
         this.initializeRoutes();
@@ -108,9 +108,9 @@ class App {
     }
 
     initializeSocketService() {
-        // Initialize the socket service with io instance
-        this.socketService = new SocketService(this.getIO());
-        console.log("- Socket.IO service initialized");
+        // Initialize the socket service manager with io instance
+        this.socketServiceManager = initializeSocketServices(this.getIO());
+        console.log("- Socket.IO services initialized");
     }
 
     async connectDatabase() {
@@ -183,12 +183,12 @@ class App {
         return this.io;
     }
 
-    getSocketService() {
-        return this.socketService;
+    getSocketServiceManager() {
+        return this.socketServiceManager;
     }
 
     getConnectedUsers() {
-        return this.socketService ? this.socketService.getConnectedUsers() : new Map();
+        return this.socketServiceManager ? this.socketServiceManager.getConnectedUsers() : new Map();
     }
 }
 

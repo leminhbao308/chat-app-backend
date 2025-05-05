@@ -216,7 +216,7 @@ const ConversationsRepo = {
             }
 
             // If no fields to update, return null
-            if (Object.keys(updateFields).length <= 1) { // Only updated_at is set
+            if (Object.keys(updateFields).length <= 0) {
                 console.warn("No fields to update");
                 return null;
             }
