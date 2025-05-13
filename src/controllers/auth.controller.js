@@ -18,6 +18,14 @@ const DEFAULT_USER_AVATAR_URL = process.env.DEFAULT_USER_AVATAR_URL;
 const DEFAULT_THUMBNAIL_URL = process.env.DEFAULT_THUMBNAIL_URL;
 
 const AuthController = {
+    /**
+     * Xử lý đăng ký người dùng mới
+     *
+     * @param {import('express').Request} req - Express request object
+     * @param {import('express').Response} res - Express response object
+     * @param {import('express').NextFunction} next - Express next function
+     * @return {Promise<void>}
+     */
     register: async (req, res, next) => {
         try {
             const {
@@ -74,6 +82,14 @@ const AuthController = {
         }
     },
 
+    /**
+     * Xử lý đăng nhập người dùng
+     *
+     * @param {import('express').Request} req - Express request object
+     * @param {import('express').Response} res - Express response object
+     * @param {import('express').NextFunction} next - Express next function
+     * @return {Promise<void>}
+     */
     login: async (req, res, next) => {
         try {
             const {phone_number, password, device_id, device_type} = req.body;
