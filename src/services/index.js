@@ -8,6 +8,7 @@ import ConversationSocketService from "./conversation.socket.service.js";
 import ContactSocketService from "./contact.socket.service.js";
 import ConnectionSocketService from "./connection.socket.service.js";
 import SocketConstant from "../constants/socket.constant.js";
+import GroupSocketService from "./group.socket.service.js";
 
 class SocketServiceManager {
     constructor(io) {
@@ -22,6 +23,7 @@ class SocketServiceManager {
         this.messageService = new MessageSocketService(io);
         this.conversationService = new ConversationSocketService(io);
         this.contactService = new ContactSocketService(io);
+        this.groupService = new GroupSocketService(io);
 
         // Khởi tạo connection service, sử dụng presence và noti service
         this.connectionService = new ConnectionSocketService(
@@ -70,6 +72,7 @@ class SocketServiceManager {
         this.profileService.registerSocketEvents(socket, userId);
         this.connectionService.registerSocketEvents(socket, userId);
         this.notificationService.registerSocketEvents(socket, userId);
+        this.groupService.registerSocketEvents(socket, userId);
     }
 
     handleDisconnection(socket, userId) {
