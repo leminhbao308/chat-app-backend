@@ -33,6 +33,43 @@ const SocketConstant = {
         ON_NEW_NOTIFICATION: "message notification",
     },
 
+    GROUP: {
+        // Group creation
+        ON_CREATE: "create group",
+        ON_CREATE_SUCCESS: "group created",
+
+        // Group member management
+        ON_ADD_MEMBER: "add member",
+        ON_MEMBER_ADDED: "member added",
+        ON_REMOVE_MEMBER: "remove member",
+        ON_MEMBER_REMOVED: "member removed",
+        ON_YOU_REMOVED: "you were removed",
+
+        // Group role management
+        ON_CHANGE_ROLE: "change role",
+        ON_ROLE_CHANGED: "role changed",
+
+        // Group settings
+        ON_UPDATE_SETTINGS: "update settings",
+        ON_SETTINGS_UPDATED: "settings updated",
+
+        // Group exit
+        ON_LEAVE: "leave group",
+        ON_MEMBER_LEFT: "member left",
+        ON_YOU_LEFT: "you left",
+
+        // Group dissolution
+        ON_DISSOLVE: "dissolve group",
+        ON_DISSOLVED: "group dissolved",
+
+        // Group info updates
+        ON_UPDATE_INFO: "update group info",
+        ON_INFO_UPDATED: "group info updated",
+
+        // Error handling
+        ON_ERROR: "group error"
+    },
+
     MESSAGE: {
         // message send events
         ON_SEND: "send message",
