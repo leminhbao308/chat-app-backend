@@ -68,8 +68,8 @@ class App {
         this.app.use(logger(process.env.NODE_ENV === 'development' ? 'dev' : 'combined'));
 
         // Body parsing
-        this.app.use(express.json({limit: '10mb'}));
-        this.app.use(express.urlencoded({extended: true, limit: '10mb'}));
+        this.app.use(express.json({limit: '1024mb'}));
+        this.app.use(express.urlencoded({extended: true, limit: '1024mb'}));
 
         // Cookie parsing
         this.app.use(cookieParser());
