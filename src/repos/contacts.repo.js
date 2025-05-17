@@ -260,20 +260,18 @@ const ContactRepo = {
 
     async removeContact(userId, contactId) {
         try {
-            // Xóa cả hai chiều của mối quan hệ
-            await mongoHelper.deleteMany(
+            // Xóa mối quan hệ dựa trên members array chứa cả hai người dùng
+            await mongoHelper.deleteOne(
                 DatabaseConstant.COLLECTIONS.CONTACTS,
                 {
-                    $or: [
-                        {
-                            user_id: mongoHelper.extractObjectId(userId),
-                            contact_id: mongoHelper.extractObjectId(contactId)
-                        },
-                        {
-                            user_id: mongoHelper.extractObjectId(contactId),
-                            contact_id: mongoHelper.extractObjectId(userId)
-                        }
-                    ]
+                    'members': {
+                        $all: [
+                            mongoHelper.extractObjectId(userId),
+                            mongoHelper.extractObjectId(contactId)
+                        ],
+                        $size: 2
+                    },
+                    status: ContactConstant.STATUS.ACCEPTED
                 }
             );
 
@@ -286,20 +284,17 @@ const ContactRepo = {
 
     async blockContact(userId, contactId) {
         try {
-            // Xóa mối quan hệ hiện tại nếu có
-            await mongoHelper.deleteMany(
+            const userObjectId = mongoHelper.extractObjectId(userId);
+            const contactObjectId = mongoHelper.extractObjectId(contactId);
+
+            // Xóa bất kỳ mối quan hệ hiện có nào giữa hai người dùng
+            await mongoHelper.deleteOne(
                 DatabaseConstant.COLLECTIONS.CONTACTS,
                 {
-                    $or: [
-                        {
-                            user_id: mongoHelper.extractObjectId(userId),
-                            contact_id: mongoHelper.extractObjectId(contactId)
-                        },
-                        {
-                            user_id: mongoHelper.extractObjectId(contactId),
-                            contact_id: mongoHelper.extractObjectId(userId)
-                        }
-                    ]
+                    'members': {
+                        $all: [userObjectId, contactObjectId],
+                        $size: 2
+                    }
                 }
             );
 
@@ -307,8 +302,8 @@ const ContactRepo = {
             await mongoHelper.insertOne(
                 DatabaseConstant.COLLECTIONS.CONTACTS,
                 {
-                    user_id: mongoHelper.extractObjectId(userId),
-                    contact_id: mongoHelper.extractObjectId(contactId),
+                    members: [userObjectId, contactObjectId],
+                    requester: userObjectId, // Người chặn cũng là người yêu cầu chặn
                     status: ContactConstant.STATUS.BLOCKED,
                     created_at: new Date(),
                     updated_at: new Date()
