@@ -210,7 +210,7 @@ const ContactController = {
     async removeContact(req, res) {
         try {
             const userId = req.user.user_id;
-            const { contact_id } = req.params;
+            const { userId: contact_id } = req.params;
 
             await repos.contact.removeContact(userId, contact_id);
 
