@@ -28,11 +28,14 @@ const ConversationsRepo = {
             const existingConversation = await mongoHelper.findOne(
                 DatabaseConstant.COLLECTIONS.CONVERSATIONS,
                 {
-                    $and: [
-                        {"participants._id": mongoHelper.extractObjectId(userId1)},
-                        {"participants._id": mongoHelper.extractObjectId(userId2)},
-                        {"participants": {$size: 2}}
-                    ]
+                    "participants._id": {
+                        $all: [
+                            mongoHelper.extractObjectId(userId1),
+                            mongoHelper.extractObjectId(userId2)
+                        ]
+                    },
+                    type: ValidationConstant.CONVERSATION_TYPE.PRIVATE,
+                    $expr: { $eq: [ { $size: "$participants" }, 2 ] }
                 }
             );
 
