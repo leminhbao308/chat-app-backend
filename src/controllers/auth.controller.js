@@ -1,0 +1,378 @@
+import repos from "../repos/index.js";
+import StatusConstant from "../constants/status.constant.js";
+import ResponseUtils from "../utils/response.util.js";
+import bcrypt from "bcryptjs";
+import ApiConstant from "../constants/api.constant.js";
+import jwt from "jsonwebtoken";
+import {ObjectId} from "mongodb";
+import 'dotenv/config'
+
+// JWT CONFIG SECRET
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+const TOKEN_EXPIRY = process.env.TOKEN_EXPIRY || "2h";
+const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || "7d";
+
+// DEFAULT URLs
+const DEFAULT_USER_AVATAR_URL = process.env.DEFAULT_USER_AVATAR_URL;
+const DEFAULT_THUMBNAIL_URL = process.env.DEFAULT_THUMBNAIL_URL;
+
+const AuthController = {
+    /**
+     * Xử lý đăng ký người dùng mới
+     *
+     * @param {import('express').Request} req - Express request object
+     * @param {import('express').Response} res - Express response object
+     * @param {import('express').NextFunction} next - Express next function
+     * @return {Promise<void>}
+     */
+    register: async (req, res, next) => {
+        try {
+            const {
+                first_name,
+                last_name,
+                gender, // 'male' or 'female'
+                date_of_birth,
+                password,
+                avatar_url,
+                thumbnail_url,
+                phone_number
+            } = req.body;
+
+            // Check if user already exists
+            const isUserExisting = await repos.auth.isUserExisting(phone_number);
+
+            if (isUserExisting) {
+                return res.status(StatusConstant.CONFLICT).json(
+                    ResponseUtils.errorResponse('Số điện thoại đã được đăng ký', StatusConstant.CONFLICT)
+                );
+            }
+
+            // Hash password
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(password, salt);
+
+            // Create user object
+            const user = {
+                first_name,
+                last_name,
+                gender,
+                date_of_birth,
+                phone_number,
+                avatar_url: avatar_url ? avatar_url : DEFAULT_USER_AVATAR_URL,
+                thumbnail_url: thumbnail_url ? thumbnail_url : DEFAULT_THUMBNAIL_URL,
+                password: hashedPassword,
+                is_active: true,
+                created_at: new Date(),
+                updated_at: new Date(),
+                online_status: "online"
+            };
+
+            // Insert user into database
+            const result = await repos.auth.saveUser(user);
+
+            return res.status(StatusConstant.CREATED).json(
+                ResponseUtils.createdResponse(
+                    ApiConstant.AUTH.REGISTER.description + ' thành công.',
+                    result
+                )
+            );
+        } catch (error) {
+            next(error);
+        }
+    },
+
+    /**
+     * Xử lý đăng nhập người dùng
+     *
+     * @param {import('express').Request} req - Express request object
+     * @param {import('express').Response} res - Express response object
+     * @param {import('express').NextFunction} next - Express next function
+     * @return {Promise<void>}
+     */
+    login: async (req, res, next) => {
+        try {
+            const {phone_number, password, device_id, device_type} = req.body;
+
+            // Find user by phone
+            const user = await repos.auth.getUserByPhone(phone_number, true);
+
+            if (!user) {
+                return res.status(StatusConstant.UNAUTHORIZED).json(
+                    ResponseUtils.unauthorizedResponse('Thông tin đăng nhập không chính xác')
+                );
+            }
+
+            // Check if user is active
+            if (!user.is_active) {
+                return res.status(StatusConstant.FORBIDDEN).json(
+                    ResponseUtils.forbiddenResponse('Tài khoản đã bị vô hiệu hóa')
+                );
+            }
+
+            // Verify password
+            const isPasswordValid = await bcrypt.compare(password, user.password);
+
+            if (!isPasswordValid) {
+                return res.status(StatusConstant.UNAUTHORIZED).json(
+                    ResponseUtils.unauthorizedResponse('Thông tin đăng nhập không chính xác')
+                );
+            }
+
+            // Generate JWT token
+            const payload = {
+                user_id: user._id,
+                phone_number: user.phone_number
+            };
+
+            const token = jwt.sign(payload, JWT_SECRET, {
+                expiresIn: TOKEN_EXPIRY
+            });
+
+            // Generate refresh token
+            const refreshToken = jwt.sign(payload, JWT_REFRESH_SECRET, {
+                expiresIn: REFRESH_TOKEN_EXPIRY
+            });
+
+            // Store refresh token in database
+            await repos.auth.saveRefreshToken(
+                {
+                    user_id: user._id,
+                    token: refreshToken,
+                    device_id,
+                    device_type
+                }
+            );
+
+            // Update last login
+            await repos.auth.updateLastLoginByUserId(user._id);
+
+            // Remove password from response
+            const {password: _, ...userWithoutPassword} = user;
+
+            // Set refreshToken in HTTP-only cookie
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'None',
+                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 ngày
+            });
+
+            return res.status(StatusConstant.OK).json(
+                ResponseUtils.successResponse(
+                    ApiConstant.AUTH.LOGIN.description + ' thành công',
+                    {
+                        token,
+                        refresh_token: refreshToken,
+                        user: userWithoutPassword
+                    }
+                )
+            );
+        } catch (error) {
+            next(error);
+        }
+    },
+
+    logout: async (req, res, next) => {
+        try {
+            // Get refresh token from cookie or body]
+            const {refreshToken} = req.cookies.refreshToken || req.body;
+
+            if (refreshToken) {
+                // Delete refresh token from database
+                await repos.auth.deleteRefreshToken(refreshToken);
+
+                // Clear cookie
+                res.clearCookie('refreshToken');
+            }
+
+            return res.status(StatusConstant.OK).json(
+                ResponseUtils.successResponse(ApiConstant.AUTH.LOGOUT.description + ' thành công')
+            );
+        } catch (error) {
+            next(error);
+        }
+    },
+
+    refreshToken: async (req, res, next) => {
+        try {
+            // Get refresh token from cookie or body
+            const refreshToken = req.body.refresh_token;
+            if (!refreshToken) {
+                return res.status(StatusConstant.UNAUTHORIZED).json(
+                    ResponseUtils.unauthorizedResponse('Không tìm thấy Refresh Token')
+                );
+            }
+
+            // Find token in database
+            const storedToken = await repos.auth.findRefreshToken(refreshToken);
+
+            if (!storedToken) {
+                return res.status(StatusConstant.UNAUTHORIZED).json(
+                    ResponseUtils.unauthorizedResponse('Refresh Token không hợp lệ')
+                );
+            }
+            await repos.auth.deleteRefreshToken(refreshToken);
+            // Verify refresh token
+            try {
+                const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
+
+                // Generate new token
+                const newToken = jwt.sign(
+                    {user_id: decoded.user_id, phone_number: decoded.phone_number},
+                    JWT_SECRET,
+                    {expiresIn: TOKEN_EXPIRY}
+                );
+                // Generate new refresh token
+                const newRefreshToken = jwt.sign(
+                    {user_id: decoded.user_id, phone_number: decoded.phone_number},
+                    JWT_REFRESH_SECRET,
+                    {expiresIn: REFRESH_TOKEN_EXPIRY}
+                );
+                // Store new refresh token in database
+                const saveRefreshTokenResult = await repos.auth.saveRefreshToken(
+                    {
+                        user_id: decoded.user_id,
+                        token: newRefreshToken,
+                    }
+                );
+
+                if (!saveRefreshTokenResult)
+                    return res.status(StatusConstant.INTERNAL_SERVER_ERROR).json(
+                        ResponseUtils.serverErrorResponse(
+                            ApiConstant.AUTH.REFRESH_TOKEN.description + ' thất bại.'
+                        )
+                    )
+
+                return res.status(StatusConstant.OK).json(
+                    ResponseUtils.successResponse(
+                        ApiConstant.AUTH.REFRESH_TOKEN.description + ' thành công',
+                        {
+                            token: newToken,
+                            refresh_token: newRefreshToken,
+                        }
+                    )
+                );
+            } catch (error) {
+                // Token expired or invalid
+                await repos.auth.deleteRefreshToken(refreshToken);
+
+                res.clearCookie('refreshToken');
+                console.log(error);
+
+
+                return res.status(StatusConstant.UNAUTHORIZED).json(
+                    ResponseUtils.unauthorizedResponse('Refresh Token hết hạn hoặc không hợp lệ')
+                );
+            }
+        } catch (error) {
+            next(error);
+        }
+    },
+
+    resetPassword: async (req, res, next) => {
+        try {
+            const {phone_number, new_password} = req.body;
+
+            // Find user by phone
+            const user = await repos.auth.getUserByPhone(phone_number);
+
+            if (!user) {
+                return res.status(StatusConstant.BAD_REQUEST).json(
+                    ResponseUtils.errorResponse(ApiConstant.AUTH.RESET_PASSWORD.description + " thất bại")
+                );
+            }
+
+            // Hash new password
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(new_password, salt);
+
+            // Update password
+            const updateResult = await repos.auth.updatePasswordByUserId(user._id, hashedPassword)
+
+            if (!updateResult)
+                return res.status(StatusConstant.INTERNAL_SERVER_ERROR).json(
+                    ResponseUtils.serverErrorResponse(ApiConstant.AUTH.RESET_PASSWORD.description + " thất bại")
+                );
+
+            // Invalidate all refresh tokens for this user
+            await repos.auth.deleteAllRefreshTokenByUserId(user._id);
+            // TODO: Invalidate all access tokens for this user
+
+            return res.status(StatusConstant.OK).json(
+                ResponseUtils.successResponse(ApiConstant.AUTH.RESET_PASSWORD.description + ' thành công')
+            );
+        } catch (error) {
+            next(error);
+        }
+    },
+
+    changePassword: async (req, res, next) => {
+        try {
+            const {current_password, new_password} = req.body;
+            const userId = ObjectId.createFromHexString(req.user.user_id);
+
+            // Find user by ID
+            const user = await repos.auth.getUserById(userId, true);
+
+            if (!user) {
+                return res.status(StatusConstant.BAD_REQUEST).json(
+                    ResponseUtils.badRequestResponse('Thông tin đăng nhập không chính xác')
+                );
+            }
+
+            // Verify current password
+            const isPasswordValid = await bcrypt.compare(current_password, user.password);
+
+            if (!isPasswordValid) {
+                return res.status(StatusConstant.BAD_REQUEST).json(
+                    ResponseUtils.badRequestResponse('Thông tin đăng nhập không chính xác')
+                );
+            }
+
+            // Hash new password
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(new_password, salt);
+
+            // Update password
+            const updateResult = repos.auth.updatePasswordByUserId(userId, hashedPassword);
+
+            if (updateResult)
+                return res.status(StatusConstant.OK).json(
+                    ResponseUtils.successResponse('Thay đổi mật khẩu thành công')
+                );
+
+            return res.status(StatusConstant.INTERNAL_SERVER_ERROR).json(
+                ResponseUtils.serverErrorResponse('Thay đổi mật khẩu thất bại')
+            );
+        } catch (error) {
+            next(error);
+        }
+    },
+
+    getUserInfo: async (req, res, next) => {
+        try {
+            const userId = ObjectId.createFromHexString(req.user.user_id);
+
+            // Find user by ID
+            const user = await repos.auth.getUserById(userId);
+
+            if (!user) {
+                return res.status(StatusConstant.NOT_FOUND).json(
+                    ResponseUtils.errorResponse('Không tìm thấy người dùng')
+                );
+            }
+
+            return res.status(StatusConstant.OK).json(
+                ResponseUtils.successResponse(
+                    ApiConstant.AUTH.ME.description + ' thành công',
+                    user
+                )
+            );
+        } catch (error) {
+            next(error);
+        }
+    }
+}
+
+export default AuthController

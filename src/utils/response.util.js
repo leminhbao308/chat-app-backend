@@ -2,7 +2,7 @@
  * Response utilities
  * Cung cấp các hàm chuẩn hóa response cho API
  */
-import StatusConstant from '../constants/statusConstant.js';
+import StatusConstant from '../constants/status.constant.js';
 
 const ResponseUtils = {
 
@@ -33,6 +33,19 @@ const ResponseUtils = {
         return this.baseResponse(true, describe, StatusConstant.OK, content);
     },
 
+    async developingResponse(req, res) {
+        try {
+            res.status(StatusConstant.OK).json(
+                ResponseUtils.successResponse("This API is developing, try again")
+            );
+        } catch (err) {
+            console.error("Error generate response: ", err);
+            res.status(StatusConstant.INTERNAL_SERVER_ERROR).json(
+                ResponseUtils.serverErrorResponse("Failed to generate response")
+            );
+        }
+    },
+
     /**
      * Error Response
      * @param {string} describe - Mô tả lỗi
@@ -53,8 +66,8 @@ const ResponseUtils = {
      */
     listResponse(describe, items, total) {
         return this.successResponse(describe, {
+            total,
             items,
-            total
         });
     },
 

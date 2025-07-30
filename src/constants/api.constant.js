@@ -31,20 +31,12 @@ const ApiConstant = {
             method: 'post',
             description: 'Làm mới token xác thực'
         },
-        // GET /verify/:token - Xác thực số điện thoại
-        VERIFY: {
-            path: '/verify/:token',
-            method: 'get',
-            description: 'Xác thực số điện thoại',
-            pathWithParams: (token) => `/verify/${token}`
-        },
-        // POST /forgot-password - Yêu cầu đặt lại mật khẩu
-        FORGOT_PASSWORD: {
-            path: '/forgot-password',
+        // POST /change-password - Yêu cầu thay đổi mật khẩu
+        CHANGE_PASSWORD: {
+            path: '/change-password',
             method: 'post',
-            description: 'Yêu cầu đặt lại mật khẩu'
+            description: 'Yêu cầu thay đổi mật khẩu'
         },
-        // POST /reset-password - Đặt lại mật khẩu
         RESET_PASSWORD: {
             path: '/reset-password',
             method: 'post',
@@ -61,101 +53,104 @@ const ApiConstant = {
     // User Routes
     USERS: {
         ROOT_PATH: '/users',
-        // GET /search - Tìm kiếm người dùng
+        // GET /search - Tìm kiếm người dùng qua số điện thoại
         SEARCH: {
             path: '/search',
             method: 'get',
-            description: 'Tìm kiếm người dùng qua số điện thoại hoặc ID'
+            description: 'Tìm kiếm người dùng qua số điện thoại'
         },
         // GET /:id - Lấy thông tin chi tiết của người dùng
         DETAIL: {
             path: '/:id',
             method: 'get',
             description: 'Lấy thông tin chi tiết của người dùng',
-            pathWithParams: (id) => `/${id}`
         },
-        // PUT /:id - Cập nhật thông tin người dùng
+        // POST /update-info - Cập nhật thông tin người dùng
         UPDATE: {
-            path: '/:id',
-            method: 'put',
+            path: '/update-info',
+            method: 'post',
             description: 'Cập nhật thông tin người dùng',
-            pathWithParams: (id) => `/${id}`
         },
-        // PUT /:id/status - Cập nhật trạng thái người dùng
-        UPDATE_STATUS: {
-            path: '/:id/status',
-            method: 'put',
-            description: 'Cập nhật trạng thái người dùng (online/offline/busy)',
-            pathWithParams: (id) => `/${id}/status`
-        },
-        // PUT /:id/profile-picture - Cập nhật ảnh đại diện
+        // POST /profile-picture - Cập nhật ảnh đại diện
         PROFILE_PICTURE: {
-            path: '/:id/profile-picture',
-            method: 'put',
-            description: 'Cập nhật ảnh đại diện',
-            pathWithParams: (id) => `/${id}/profile-picture`
+            path: '/profile-picture',
+            method: 'post',
+            description: 'Cập nhật ảnh đại diện'
+        },
+        // GET /profile-picture/old - Lấy danh sách ảnh đại diện cũ
+        PROFILE_PICTURE_OLD: {
+            path: '/profile-picture/old',
+            method: 'get',
+            description: 'Lấy danh sách ảnh đại diện cũ'
         }
     },
 
     // Contacts/Friends Routes
     CONTACTS: {
+        ROOT_PATH: "/contacts",
         // GET /contacts - Lấy danh sách liên hệ/bạn bè
         LIST: {
-            path: '/contacts',
+            path: '/list',
             method: 'get',
             description: 'Lấy danh sách liên hệ/bạn bè'
         },
-        // POST /contacts/add/:userId - Gửi lời mời kết bạn
+        // POST /contacts/:userId/add - Gửi lời mời kết bạn
         ADD: {
-            path: '/contacts/add/:userId',
+            path: '/:userId/add',
             method: 'post',
-            description: 'Gửi lời mời kết bạn',
-            pathWithParams: (userId) => `/contacts/add/${userId}`
+            description: 'Gửi lời mời kết bạn'
         },
-        // GET /contacts/requests - Lấy danh sách lời mời kết bạn
+        // GET /contacts/requests - Lấy danh sách lời mời kết bạn đang chờ
         REQUESTS: {
-            path: '/contacts/requests',
+            path: '/requests',
             method: 'get',
-            description: 'Lấy danh sách lời mời kết bạn'
+            description: 'Lấy danh sách lời mời kết bạn đang chờ'
         },
-        // PUT /contacts/accept/:requestId - Chấp nhận lời mời kết bạn
+        // GET /contacts/sent-requests - Lấy danh sách lời mời kết bạn đã gửi
+        SENT_REQUESTS: {
+            path: '/sent-requests',
+            method: 'get',
+            description: 'Lấy danh sách lời mời kết bạn đã gửi'
+        },
+        // POST /contacts/:requestId/accept - Chấp nhận lời mời kết bạn
         ACCEPT: {
-            path: '/contacts/accept/:requestId',
-            method: 'put',
-            description: 'Chấp nhận lời mời kết bạn',
-            pathWithParams: (requestId) => `/contacts/accept/${requestId}`
+            path: '/:requestId/accept',
+            method: 'post',
+            description: 'Chấp nhận lời mời kết bạn'
         },
-        // PUT /contacts/reject/:requestId - Từ chối lời mời kết bạn
+        // POST /contacts/:requestId/reject - Từ chối lời mời kết bạn
         REJECT: {
-            path: '/contacts/reject/:requestId',
-            method: 'put',
-            description: 'Từ chối lời mời kết bạn',
-            pathWithParams: (requestId) => `/contacts/reject/${requestId}`
+            path: '/:requestId/reject',
+            method: 'post',
+            description: 'Từ chối lời mời kết bạn'
         },
-        // DELETE /contacts/:userId - Xóa liên hệ/bạn bè
+        // POST /contacts/:requestId/cancel - Từ chối lời mời kết bạn
+        CANCEL: {
+            path: '/:requestId/cancel',
+            method: 'post',
+            description: 'Từ chối lời mời kết bạn'
+        },
+        // POST /contacts/:userId/delete - Xóa liên hệ/bạn bè
         REMOVE: {
-            path: '/contacts/:userId',
-            method: 'delete',
-            description: 'Xóa liên hệ/bạn bè',
-            pathWithParams: (userId) => `/contacts/${userId}`
+            path: '/:userId/delete',
+            method: 'post',
+            description: 'Xóa liên hệ/bạn bè'
         },
-        // PUT /contacts/:userId/block - Chặn người dùng
+        // POST /contacts/:userId/block - Chặn người dùng
         BLOCK: {
-            path: '/contacts/:userId/block',
-            method: 'put',
-            description: 'Chặn người dùng',
-            pathWithParams: (userId) => `/contacts/${userId}/block`
+            path: '/:userId/block',
+            method: 'post',
+            description: 'Chặn người dùng'
         },
-        // PUT /contacts/:userId/unblock - Bỏ chặn người dùng
+        // POST /contacts/:userId/unblock - Bỏ chặn người dùng
         UNBLOCK: {
-            path: '/contacts/:userId/unblock',
-            method: 'put',
-            description: 'Bỏ chặn người dùng',
-            pathWithParams: (userId) => `/contacts/${userId}/unblock`
+            path: '/:userId/unblock',
+            method: 'post',
+            description: 'Bỏ chặn người dùng'
         },
         // GET /contacts/blocked - Lấy danh sách người dùng bị chặn
         BLOCKED: {
-            path: '/contacts/blocked',
+            path: '/blocked',
             method: 'get',
             description: 'Lấy danh sách người dùng bị chặn'
         }
@@ -163,71 +158,128 @@ const ApiConstant = {
 
     // Conversation Routes
     CONVERSATIONS: {
+        ROOT_PATH: '/conversations',
         // GET /conversations - Lấy tất cả cuộc trò chuyện của người dùng
         LIST: {
-            path: '/conversations',
+            path: '/all',
             method: 'get',
             description: 'Lấy tất cả cuộc trò chuyện của người dùng'
         },
+        // GET /conversations/:id - Lấy cuộc trò chuyện của người dùng theo id
+        GET: {
+            path: '/:id',
+            method: 'get',
+            description: 'Lấy cuộc trò chuyện của người dùng theo id'
+        },
         // POST /conversations - Tạo cuộc trò chuyện mới
         CREATE: {
-            path: '/conversations',
+            path: '/new',
             method: 'post',
             description: 'Tạo cuộc trò chuyện mới'
         },
-        // GET /conversations/:id - Lấy thông tin chi tiết về cuộc trò chuyện
+        // GET /conversations/:id/detail - Lấy thông tin chi tiết về cuộc trò chuyện
         DETAIL: {
-            path: '/conversations/:id',
+            path: '/:id/detail',
             method: 'get',
             description: 'Lấy thông tin chi tiết về cuộc trò chuyện',
-            pathWithParams: (id) => `/conversations/${id}`
         },
-        // PUT /conversations/:id - Cập nhật thông tin cuộc trò chuyện
+        // POST /conversations/:id - Cập nhật thông tin cuộc trò chuyện
         UPDATE: {
-            path: '/conversations/:id',
-            method: 'put',
-            description: 'Cập nhật thông tin cuộc trò chuyện (tên, ảnh)',
-            pathWithParams: (id) => `/conversations/${id}`
+            path: '/:id',
+            method: 'post',
+            description: 'Cập nhật thông tin cuộc trò chuyện'
         },
-        // PUT /conversations/:id/archive - Lưu trữ cuộc trò chuyện
+        // POST /conversations/:id/add - Thêm người vào cuộc trò chuyện
+        ADD_MEMBER: {
+            path: '/:id/add',
+            method: 'post',
+            description: 'Thêm người vào cuộc trò chuyện'
+        },
+        // POST /conversations/:id/remove - Xóa người khỏi cuộc trò chuyện
+        REMOVE_MEMBER: {
+            path: '/:id/remove',
+            method: 'post',
+            description: 'Xóa người khỏi cuộc trò chuyện'
+        },
+        // POST /conversations/:id/change-role - Thay đổi role của user trong cuộc trò chuyện
+        CHANGE_ROLE: {
+            path: '/:id/change-role',
+            method: 'post',
+            description: 'Thay đổi role của user trong cuộc trò chuyện'
+        },
+        // POST /conversations/:id/update-settings - Cập nhật các cài đặt cuộc trò chuyện
+        UPDATE_SETTINGS: {
+            path: '/:id/update-settings',
+            method: 'post',
+            description: 'Cập nhật các cài đặt cuộc trò chuyện'
+        },
+        // POST /conversations/:id/leave - Rời khỏi cuộc trò chuyện
+        LEAVE_GROUP: {
+            path: '/:id/leave',
+            method: 'post',
+            description: 'Rời khỏi cuộc trò chuyện'
+        },
+        // POST /conversations/:id/dissolve-group - Giải tán cuộc trò chuyện
+        DISSOLVE_GROUP: {
+            path: '/:id/dissolve-group',
+            method: 'post',
+            description: 'Giải tán cuộc trò chuyện'
+        },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // POST /conversations/:id/archive - Lưu trữ cuộc trò chuyện
         ARCHIVE: {
-            path: '/conversations/:id/archive',
-            method: 'put',
+            path: '/:id/archive',
+            method: 'post',
             description: 'Lưu trữ cuộc trò chuyện',
             pathWithParams: (id) => `/conversations/${id}/archive`
         },
-        // PUT /conversations/:id/unarchive - Bỏ lưu trữ cuộc trò chuyện
+        // POST /conversations/:id/unarchive - Bỏ lưu trữ cuộc trò chuyện
         UNARCHIVE: {
-            path: '/conversations/:id/unarchive',
-            method: 'put',
+            path: '/:id/unarchive',
+            method: 'post',
             description: 'Bỏ lưu trữ cuộc trò chuyện',
             pathWithParams: (id) => `/conversations/${id}/unarchive`
         },
-        // PUT /conversations/:id/pin - Ghim cuộc trò chuyện
+        // POST /conversations/:id/pin - Ghim cuộc trò chuyện
         PIN: {
-            path: '/conversations/:id/pin',
-            method: 'put',
+            path: '/:id/pin',
+            method: 'post',
             description: 'Ghim cuộc trò chuyện',
             pathWithParams: (id) => `/conversations/${id}/pin`
         },
-        // PUT /conversations/:id/unpin - Bỏ ghim cuộc trò chuyện
+        // POST /conversations/:id/unpin - Bỏ ghim cuộc trò chuyện
         UNPIN: {
-            path: '/conversations/:id/unpin',
-            method: 'put',
+            path: '/:id/unpin',
+            method: 'post',
             description: 'Bỏ ghim cuộc trò chuyện',
             pathWithParams: (id) => `/conversations/${id}/unpin`
         },
-        // PUT /conversations/:id/mute - Tắt thông báo cuộc trò chuyện
+        // POST /conversations/:id/mute - Tắt thông báo cuộc trò chuyện
         MUTE: {
-            path: '/conversations/:id/mute',
-            method: 'put',
+            path: '/:id/mute',
+            method: 'post',
             description: 'Tắt thông báo cuộc trò chuyện',
             pathWithParams: (id) => `/conversations/${id}/mute`
         },
-        // PUT /conversations/:id/unmute - Bật thông báo cuộc trò chuyện
+        // POST /conversations/:id/unmute - Bật thông báo cuộc trò chuyện
         UNMUTE: {
-            path: '/conversations/:id/unmute',
-            method: 'put',
+            path: '/:id/unmute',
+            method: 'post',
             description: 'Bật thông báo cuộc trò chuyện',
             pathWithParams: (id) => `/conversations/${id}/unmute`
         }
@@ -235,63 +287,56 @@ const ApiConstant = {
 
     // Message Routes
     MESSAGES: {
-        // GET /conversations/:conversationId/messages - Lấy tin nhắn trong cuộc trò chuyện
+        ROOT_PATH: '/messages',
+        // GET /messages/:conversationId - Lấy tin nhắn trong cuộc trò chuyện
         LIST: {
-            path: '/conversations/:conversationId/messages',
+            path: '/:conversationId',
             method: 'get',
-            description: 'Lấy tin nhắn trong cuộc trò chuyện (phân trang)',
-            pathWithParams: (conversationId) => `/conversations/${conversationId}/messages`
+            description: 'Lấy tin nhắn trong cuộc trò chuyện (phân trang)'
         },
-        // POST /conversations/:conversationId/messages - Gửi tin nhắn mới
+        // POST /messages/:conversationId - Gửi tin nhắn mới
         SEND: {
-            path: '/conversations/:conversationId/messages',
+            path: '/:conversationId',
             method: 'post',
-            description: 'Gửi tin nhắn mới',
-            pathWithParams: (conversationId) => `/conversations/${conversationId}/messages`
+            description: 'Gửi tin nhắn mới'
         },
-        // PUT /conversations/:conversationId/messages/:messageId - Cập nhật/sửa tin nhắn
+        // POST /messages/:conversationId/edit/:messageId - Cập nhật/sửa tin nhắn
         UPDATE: {
-            path: '/conversations/:conversationId/messages/:messageId',
-            method: 'put',
-            description: 'Cập nhật/sửa tin nhắn',
-            pathWithParams: (conversationId, messageId) => `/conversations/${conversationId}/messages/${messageId}`
+            path: '/:conversationId/edit/:messageId',
+            method: 'post',
+            description: 'Cập nhật/sửa tin nhắn'
         },
-        // DELETE /conversations/:conversationId/messages/:messageId - Xóa tin nhắn
+        // POST /messages/:conversationId/delete/:messageId - Xóa tin nhắn
         DELETE: {
-            path: '/conversations/:conversationId/messages/:messageId',
-            method: 'delete',
-            description: 'Xóa tin nhắn',
-            pathWithParams: (conversationId, messageId) => `/conversations/${conversationId}/messages/${messageId}`
+            path: '/:conversationId/delete/:messageId',
+            method: 'post',
+            description: 'Xóa tin nhắn'
         },
-        // POST /conversations/:conversationId/messages/:messageId/react - Thêm biểu cảm vào tin nhắn
+        // POST /messages/:conversationId/reaction/:messageId/add - Thêm biểu cảm vào tin nhắn
         REACT: {
-            path: '/conversations/:conversationId/messages/:messageId/react',
+            path: '/:conversationId/reaction/:messageId/add',
             method: 'post',
-            description: 'Thêm biểu cảm vào tin nhắn',
-            pathWithParams: (conversationId, messageId) => `/conversations/${conversationId}/messages/${messageId}/react`
+            description: 'Thêm biểu cảm vào tin nhắn'
         },
-        // DELETE /conversations/:conversationId/messages/:messageId/react/:reactionId - Xóa biểu cảm
+        // DELETE /messages/:conversationId/reaction/:messageId/remove/:reactionId - Xóa biểu cảm
         REMOVE_REACT: {
-            path: '/conversations/:conversationId/messages/:messageId/react/:reactionId',
-            method: 'delete',
-            description: 'Xóa biểu cảm khỏi tin nhắn',
-            pathWithParams: (conversationId, messageId, reactionId) =>
-                `/conversations/${conversationId}/messages/${messageId}/react/${reactionId}`
-        },
-        // GET /conversations/:conversationId/messages/:messageId/read-receipts - Lấy trạng thái đã đọc
-        READ_RECEIPTS: {
-            path: '/conversations/:conversationId/messages/:messageId/read-receipts',
-            method: 'get',
-            description: 'Lấy trạng thái đã đọc của tin nhắn',
-            pathWithParams: (conversationId, messageId) =>
-                `/conversations/${conversationId}/messages/${messageId}/read-receipts`
-        },
-        // POST /conversations/:conversationId/read - Đánh dấu đã đọc tất cả tin nhắn trong cuộc trò chuyện
-        MARK_READ: {
-            path: '/conversations/:conversationId/read',
+            path: '/:conversationId/reaction/:messageId/remove/:reactionId',
             method: 'post',
-            description: 'Đánh dấu đã đọc tất cả tin nhắn trong cuộc trò chuyện',
-            pathWithParams: (conversationId) => `/conversations/${conversationId}/read`
+            description: 'Xóa biểu cảm khỏi tin nhắn'
+        },
+        // // GET /conversations/:conversationId/messages/:messageId/read-receipts - Lấy trạng thái đã đọc
+        // READ_RECEIPTS: {
+        //     path: '/conversations/:conversationId/messages/:messageId/read-receipts',
+        //     method: 'get',
+        //     description: 'Lấy trạng thái đã đọc của tin nhắn',
+        //     pathWithParams: (conversationId, messageId) =>
+        //         `/conversations/${conversationId}/messages/${messageId}/read-receipts`
+        // },
+        // POST /messages/:conversationId/read - Đánh dấu đã đọc tất cả tin nhắn trong cuộc trò chuyện
+        MARK_READ: {
+            path: '/:conversationId/read',
+            method: 'post',
+            description: 'Đánh dấu đã đọc tất cả tin nhắn trong cuộc trò chuyện'
         }
     },
 
@@ -363,32 +408,24 @@ const ApiConstant = {
 
     // Media Routes
     MEDIA: {
-        // POST /media/upload - Tải lên tệp đa phương tiện
-        UPLOAD: {
-            path: '/media/upload',
+        ROOT_PATH: '/media',
+        // POST /media/one-attachment - Tải 1 file lên server
+        UPLOAD_ONE: {
+            path: '/one-attachment',
             method: 'post',
-            description: 'Tải lên tệp đa phương tiện (hình ảnh, video, âm thanh, tệp)'
+            description: 'Tải 1 file lên server'
         },
-        // GET /media/:id - Lấy tệp đa phương tiện
-        GET: {
-            path: '/media/:id',
-            method: 'get',
-            description: 'Lấy tệp đa phương tiện',
-            pathWithParams: (id) => `/media/${id}`
+        // POST /media/multi-attachments - Tải lên tối đa 5 files
+        UPLOAD_MULTIPLE: {
+            path: '/multi-attachments',
+            method: 'post',
+            description: 'Tải lên tối đa 5 files'
         },
-        // DELETE /media/:id - Xóa tệp đa phương tiện
-        DELETE: {
-            path: '/media/:id',
-            method: 'delete',
-            description: 'Xóa tệp đa phương tiện',
-            pathWithParams: (id) => `/media/${id}`
-        },
-        // GET /conversations/:conversationId/media - Lấy tất cả phương tiện trong cuộc trò chuyện
-        CONVERSATION_MEDIA: {
-            path: '/conversations/:conversationId/media',
-            method: 'get',
-            description: 'Lấy tất cả phương tiện trong cuộc trò chuyện',
-            pathWithParams: (conversationId) => `/conversations/${conversationId}/media`
+        // POST /media/download-by-url - Tải tệp về bằng url
+        DOWNLOAD_BY_URL: {
+            path: '/download-by-url',
+            method: 'post',
+            description: 'Tải tệp về bằng url'
         }
     },
 
@@ -509,20 +546,37 @@ const ApiConstant = {
 
     // WebSocket Routes
     WEBSOCKET: {
+        ROOT_PATH: "/ws",
+        CONSTANTS: {
+            path: '/constants',
+            method: 'get'
+        },
+        GET_CONVERSATIONS: {
+            path: "/conversations",
+            description: "Lấy danh sách cuộc trò chuyện cho người dùng hiện tại"
+        },
+        USER_STATUS: {
+            path: "/user-status",
+            description: "Kiểm tra trạng thái trực tuyến của người dùng"
+        },
+        UPDATE_STATUS: {
+            path: "/update-status",
+            description: "Cập nhật trạng thái trực tuyến của người dùng"
+        },
         // /ws/connect - Kết nối WebSocket
         CONNECT: {
-            path: '/ws/connect',
+            path: '/connect',
             description: 'Kết nối WebSocket'
         },
         // /ws/typing/:conversationId - Gửi/nhận thông báo đang nhập
         TYPING: {
-            path: '/ws/typing/:conversationId',
+            path: '/typing/:conversationId',
             description: 'Gửi/nhận thông báo đang nhập',
-            pathWithParams: (conversationId) => `/ws/typing/${conversationId}`
+            pathWithParams: (conversationId) => `/typing/${conversationId}`
         },
         // /ws/presence - Cập nhật và nhận trạng thái hiện diện của người dùng
         PRESENCE: {
-            path: '/ws/presence',
+            path: '/presence',
             description: 'Cập nhật và nhận trạng thái hiện diện của người dùng'
         }
     },
@@ -561,7 +615,7 @@ const ApiConstant = {
             method: 'post',
             description: 'Khôi phục dữ liệu từ bản sao lưu'
         }
-    }
+    },
 };
 
 export default ApiConstant;

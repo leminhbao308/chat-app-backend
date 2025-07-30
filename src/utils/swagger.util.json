@@ -1,0 +1,1162 @@
+{
+  "swagger" : "2.0",
+  "info" : {
+    "title": "Công Nghệ Mới - Chat App - API Docs",
+    "description": "API Documentation cho phần Authentication của Chat App",
+    "version": "1.0"
+  },
+    "servers" : [ {
+    "url" : "http://localhost:3000"
+  } ],
+  "components" : {
+    "securitySchemes" : {
+      "bearerAuth" : {
+        "type" : "http",
+        "scheme" : "bearer"
+      },
+      "noauthAuth" : {
+        "type" : "http",
+        "scheme" : "noauth"
+      }
+    }
+  },
+  "tags" : [ {
+    "name" : "auth"
+  }, {
+    "name" : "users"
+  }, {
+    "name" : "contacts"
+  }, {
+    "name" : "socket"
+  }, {
+    "name" : "conversations"
+  }, {
+    "name" : "messages"
+  }, {
+    "name" : "media"
+  } ],
+  "paths" : {
+    "/auth/register" : {
+      "post" : {
+        "tags" : [ "auth" ],
+        "summary" : "auth/register",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "object",
+                "example" : {
+                  "first_name" : "Le",
+                  "last_name" : "Hoang Minh",
+                  "date_of_birth" : "03-08-2003",
+                  "password" : "Example@1",
+                  "phone_number" : "0858484722",
+                  "avatar_url" : "https://chat-app-be-file-storage.s3.ap-southeast-2.amazonaws.com/defaults/default_avatar_url.jpg"
+                }
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+              "description" : "Created response",
+              "content" : {
+                  "application/json" : {
+
+                  }
+              }
+          }
+        }
+      }
+    },
+    "/auth/login" : {
+      "post" : {
+        "tags" : [ "auth" ],
+        "summary" : "auth/login",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "object",
+                "example" : {
+                  "phone_number" : "0858484722",
+                  "password" : "Example@1",
+                  "device_type" : "web"
+                }
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout" : {
+      "post" : {
+        "tags" : [ "auth" ],
+        "summary" : "auth/logout",
+        "requestBody" : {
+          "content" : { }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/auth/reset-password" : {
+      "post" : {
+        "tags" : [ "auth" ],
+        "summary" : "auth/reset-password",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "object",
+                "example" : {
+                  "phone_number" : "0399405711",
+                  "new_password" : "Example@123"
+                }
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/auth/change-password" : {
+      "post" : {
+        "tags" : [ "auth" ],
+        "summary" : "auth/change-password",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "object",
+                "example" : {
+                  "current_password" : "Example@123",
+                  "new_password" : "Example@1234"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/auth/refresh-token" : {
+      "post" : {
+        "tags" : [ "auth" ],
+        "summary" : "auth/refresh-token",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "object",
+                "example" : {
+                  "refresh_token" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjdmN2YzMmY2YTVmNjk0NDBhZjYwYzFjIiwicGhvbmVfbnVtYmVyIjoiMDM5OTQwNTcxMSIsImlhdCI6MTc0NDcwOTUwNiwiZXhwIjoxNzQ0NzA5NTM2fQ.JOksJShvcZgrZJapWoFenfvPNdJLGrj0wwPqoaqj-qE"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "noauthAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/auth/me" : {
+      "get" : {
+        "tags" : [ "auth" ],
+        "summary" : "auth/me",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/users/update-info" : {
+      "post" : {
+        "tags" : [ "users" ],
+        "summary" : "users/update-info",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "object",
+                "example" : {
+                  "first_name" : "Minor",
+                  "last_name" : "Le Hoang",
+                  "date_of_birth" : "31-01-2003"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/users/profile-picture" : {
+      "post" : {
+        "tags" : [ "users" ],
+        "summary" : "users/profile-picture",
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "file" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/users/search" : {
+      "get" : {
+        "tags" : [ "users" ],
+        "summary" : "users/search",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "phone_number",
+          "in" : "query",
+          "schema" : {
+            "type" : "integer"
+          },
+          "example" : "0858484522"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/users/{id}" : {
+      "get" : {
+        "tags" : [ "users" ],
+        "summary" : "users/:id",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "schema" : {
+            "type" : "string"
+          },
+          "required" : true,
+          "example" : "{{user_id}}"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/users/profile-picture/old" : {
+      "get" : {
+        "tags" : [ "users" ],
+        "summary" : "users/profile-picture/old",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/contacts/requests" : {
+      "get" : {
+        "tags" : [ "contacts" ],
+        "summary" : "contacts/requests",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/contacts/list" : {
+      "get" : {
+        "tags" : [ "contacts" ],
+        "summary" : "contacts/list",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/contacts/sent-requests" : {
+      "get" : {
+        "tags" : [ "contacts" ],
+        "summary" : "contacts/sent-requests",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/contacts/{uid}/add" : {
+      "post" : {
+        "tags" : [ "contacts" ],
+        "summary" : "contact/:uid/add",
+        "requestBody" : {
+          "content" : { }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "uid",
+          "in" : "path",
+          "schema" : {
+            "type" : "string"
+          },
+          "required" : true,
+          "description" : "User ID",
+          "example" : "67f8036fc01c9572e09b5720"
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "headers" : {
+              "Content-Security-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+                }
+              },
+              "Cross-Origin-Opener-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "same-origin"
+                }
+              },
+              "Cross-Origin-Resource-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "same-origin"
+                }
+              },
+              "Origin-Agent-Cluster" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "?1"
+                }
+              },
+              "Referrer-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "no-referrer"
+                }
+              },
+              "Strict-Transport-Security" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "max-age=31536000; includeSubDomains"
+                }
+              },
+              "X-Content-Type-Options" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "nosniff"
+                }
+              },
+              "X-DNS-Prefetch-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "off"
+                }
+              },
+              "X-Download-Options" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "noopen"
+                }
+              },
+              "X-Frame-Options" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "SAMEORIGIN"
+                }
+              },
+              "X-Permitted-Cross-Domain-Policies" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "none"
+                }
+              },
+              "X-XSS-Protection" : {
+                "schema" : {
+                  "type" : "integer",
+                  "example" : "0"
+                }
+              },
+              "Vary" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "Origin, Accept-Encoding"
+                }
+              },
+              "Access-Control-Allow-Credentials" : {
+                "schema" : {
+                  "type" : "boolean",
+                  "example" : "true"
+                }
+              },
+              "Content-Type" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "application/json; charset=utf-8"
+                }
+              },
+              "Content-Length" : {
+                "schema" : {
+                  "type" : "integer",
+                  "example" : "83"
+                }
+              },
+              "ETag" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "W/\"53-dMBSPWo12jxwRab751dsGTuudXo\""
+                }
+              },
+              "Date" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "Tue, 15 Apr 2025 06:12:31 GMT"
+                }
+              },
+              "Connection" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "keep-alive"
+                }
+              },
+              "Keep-Alive" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "timeout=5"
+                }
+              }
+            },
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object"
+                },
+                "example" : {
+                  "success" : true,
+                  "describe" : "Contact request sent",
+                  "status_code" : 200,
+                  "content" : null
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contacts/{requesterId}/accept" : {
+      "post" : {
+        "tags" : [ "contacts" ],
+        "summary" : "/contact/:requesterId/accept",
+        "requestBody" : {
+          "content" : { }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "requesterId",
+          "in" : "path",
+          "schema" : {
+            "type" : "string"
+          },
+          "required" : true
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "headers" : {
+              "Content-Security-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+                }
+              },
+              "Cross-Origin-Opener-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "same-origin"
+                }
+              },
+              "Cross-Origin-Resource-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "same-origin"
+                }
+              },
+              "Origin-Agent-Cluster" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "?1"
+                }
+              },
+              "Referrer-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "no-referrer"
+                }
+              },
+              "Strict-Transport-Security" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "max-age=31536000; includeSubDomains"
+                }
+              },
+              "X-Content-Type-Options" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "nosniff"
+                }
+              },
+              "X-DNS-Prefetch-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "off"
+                }
+              },
+              "X-Download-Options" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "noopen"
+                }
+              },
+              "X-Frame-Options" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "SAMEORIGIN"
+                }
+              },
+              "X-Permitted-Cross-Domain-Policies" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "none"
+                }
+              },
+              "X-XSS-Protection" : {
+                "schema" : {
+                  "type" : "integer",
+                  "example" : "0"
+                }
+              },
+              "Vary" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "Origin, Accept-Encoding"
+                }
+              },
+              "Access-Control-Allow-Credentials" : {
+                "schema" : {
+                  "type" : "boolean",
+                  "example" : "true"
+                }
+              },
+              "Content-Type" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "application/json; charset=utf-8"
+                }
+              },
+              "Content-Length" : {
+                "schema" : {
+                  "type" : "integer",
+                  "example" : "83"
+                }
+              },
+              "ETag" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "W/\"53-dMBSPWo12jxwRab751dsGTuudXo\""
+                }
+              },
+              "Date" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "Tue, 15 Apr 2025 06:12:31 GMT"
+                }
+              },
+              "Connection" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "keep-alive"
+                }
+              },
+              "Keep-Alive" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "timeout=5"
+                }
+              }
+            },
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object"
+                },
+                "example" : {
+                  "success" : true,
+                  "describe" : "Contact request sent",
+                  "status_code" : 200,
+                  "content" : null
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contacts/{requesterId}/reject" : {
+      "post" : {
+        "tags" : [ "contacts" ],
+        "summary" : "/contact/:requesterId/reject",
+        "requestBody" : {
+          "content" : { }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "requesterId",
+          "in" : "path",
+          "schema" : {
+            "type" : "string"
+          },
+          "required" : true
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "headers" : {
+              "Content-Security-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+                }
+              },
+              "Cross-Origin-Opener-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "same-origin"
+                }
+              },
+              "Cross-Origin-Resource-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "same-origin"
+                }
+              },
+              "Origin-Agent-Cluster" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "?1"
+                }
+              },
+              "Referrer-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "no-referrer"
+                }
+              },
+              "Strict-Transport-Security" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "max-age=31536000; includeSubDomains"
+                }
+              },
+              "X-Content-Type-Options" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "nosniff"
+                }
+              },
+              "X-DNS-Prefetch-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "off"
+                }
+              },
+              "X-Download-Options" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "noopen"
+                }
+              },
+              "X-Frame-Options" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "SAMEORIGIN"
+                }
+              },
+              "X-Permitted-Cross-Domain-Policies" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "none"
+                }
+              },
+              "X-XSS-Protection" : {
+                "schema" : {
+                  "type" : "integer",
+                  "example" : "0"
+                }
+              },
+              "Vary" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "Origin, Accept-Encoding"
+                }
+              },
+              "Access-Control-Allow-Credentials" : {
+                "schema" : {
+                  "type" : "boolean",
+                  "example" : "true"
+                }
+              },
+              "Content-Type" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "application/json; charset=utf-8"
+                }
+              },
+              "Content-Length" : {
+                "schema" : {
+                  "type" : "integer",
+                  "example" : "83"
+                }
+              },
+              "ETag" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "W/\"53-dMBSPWo12jxwRab751dsGTuudXo\""
+                }
+              },
+              "Date" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "Tue, 15 Apr 2025 06:12:31 GMT"
+                }
+              },
+              "Connection" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "keep-alive"
+                }
+              },
+              "Keep-Alive" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "timeout=5"
+                }
+              }
+            },
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object"
+                },
+                "example" : {
+                  "success" : true,
+                  "describe" : "Contact request sent",
+                  "status_code" : 200,
+                  "content" : null
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contacts/{requesterId}/cancel" : {
+      "post" : {
+        "tags" : [ "contacts" ],
+        "summary" : "/contact/:requesterId/cancel",
+        "requestBody" : {
+          "content" : { }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "requesterId",
+          "in" : "path",
+          "schema" : {
+            "type" : "string"
+          },
+          "required" : true
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "headers" : {
+              "Content-Security-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+                }
+              },
+              "Cross-Origin-Opener-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "same-origin"
+                }
+              },
+              "Cross-Origin-Resource-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "same-origin"
+                }
+              },
+              "Origin-Agent-Cluster" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "?1"
+                }
+              },
+              "Referrer-Policy" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "no-referrer"
+                }
+              },
+              "Strict-Transport-Security" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "max-age=31536000; includeSubDomains"
+                }
+              },
+              "X-Content-Type-Options" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "nosniff"
+                }
+              },
+              "X-DNS-Prefetch-Control" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "off"
+                }
+              },
+              "X-Download-Options" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "noopen"
+                }
+              },
+              "X-Frame-Options" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "SAMEORIGIN"
+                }
+              },
+              "X-Permitted-Cross-Domain-Policies" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "none"
+                }
+              },
+              "X-XSS-Protection" : {
+                "schema" : {
+                  "type" : "integer",
+                  "example" : "0"
+                }
+              },
+              "Vary" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "Origin, Accept-Encoding"
+                }
+              },
+              "Access-Control-Allow-Credentials" : {
+                "schema" : {
+                  "type" : "boolean",
+                  "example" : "true"
+                }
+              },
+              "Content-Type" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "application/json; charset=utf-8"
+                }
+              },
+              "Content-Length" : {
+                "schema" : {
+                  "type" : "integer",
+                  "example" : "83"
+                }
+              },
+              "ETag" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "W/\"53-dMBSPWo12jxwRab751dsGTuudXo\""
+                }
+              },
+              "Date" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "Tue, 15 Apr 2025 06:12:31 GMT"
+                }
+              },
+              "Connection" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "keep-alive"
+                }
+              },
+              "Keep-Alive" : {
+                "schema" : {
+                  "type" : "string",
+                  "example" : "timeout=5"
+                }
+              }
+            },
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object"
+                },
+                "example" : {
+                  "success" : true,
+                  "describe" : "Contact request sent",
+                  "status_code" : 200,
+                  "content" : null
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ws/constants" : {
+      "get" : {
+        "tags" : [ "socket" ],
+        "summary" : "/ws/constants",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/conversations/all" : {
+      "get" : {
+        "tags" : [ "conversations" ],
+        "summary" : "conversations/all",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/conversations/{id}" : {
+      "get" : {
+        "tags" : [ "conversations" ],
+        "summary" : "conversations/:id",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "schema" : {
+            "type" : "string"
+          },
+          "required" : true,
+          "example" : "68035af8e921b80839b9b478"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/messages/{conversationId}" : {
+      "get" : {
+        "tags" : [ "messages" ],
+        "summary" : "messages/:conversationId",
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "conversationId",
+          "in" : "path",
+          "schema" : {
+            "type" : "string"
+          },
+          "required" : true,
+          "example" : "6803133d1af9abb972f2718f"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/media/one-attachment" : {
+      "get" : {
+        "tags" : [ "media" ],
+        "summary" : "media/one-attachment",
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/media/multi-attachments" : {
+      "get" : {
+        "tags" : [ "media" ],
+        "summary" : "media/multi-attachments",
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    }
+  }
+}
