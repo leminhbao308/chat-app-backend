@@ -51,7 +51,7 @@ const userValidation = {
 
     toggleUserStatus: {
         body: Joi.object({
-            online_status: Joi.string().required().equal('online', 'offline', 'busy')
+            online_status: Joi.string().required().valid('online', 'offline', 'busy')
         })
     }
 };
