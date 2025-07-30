@@ -94,7 +94,7 @@ const conversationValidation = {
         body: Joi.object({
             role: Joi.string().valid(
                 ValidationConstant.GROUP_ROLE.ADMIN,
-                ValidationConstant.GROUP_ROLE.ADMIN
+                ValidationConstant.GROUP_ROLE.MEM
             ).optional(),
             is_muted: Joi.boolean().optional(),
             is_pinned: Joi.boolean().optional()
