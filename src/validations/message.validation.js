@@ -15,7 +15,7 @@ const messageValidation = {
                 ValidationConstant.MEDIA_TYPE.FILE,
                 ValidationConstant.MEDIA_TYPE.AUD
             ).required(),
-            content: Joi.string().when(ValidationConstant.CONVERSATION_ATT.TYPE, {
+            content: Joi.string().when('type', {
                 is: ValidationConstant.MEDIA_TYPE.TXT,
                 then: Joi.string().required(),
                 otherwise: Joi.string().optional()
